@@ -11,6 +11,7 @@ import {
 } from './controller.js';
 
 const router = express.Router();
+//jijamagica
 
 // Rutas para los usuarios
 router.post('/register', registerUser); // Registro de usuarios
