@@ -34,7 +34,12 @@ app.use("/api/v1", router);
 
 // Ruta inicial
 app.get("/", (req, res) => {
-  res.send("<h1>¡Servidor funcionando correctamente!</h1>");
+  res.send(`
+    <html>
+      <head><title>NodeJs BO</title></head>
+      <body><h1>¡Bienvenido al backend la Peluquería César Farra!</h1></body>
+    </html>
+  `);
 });
 
 // Inicializar servidor
