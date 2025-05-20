@@ -181,9 +181,9 @@ export const register = async (req, res) => {
     try {
         console.log("Datos recibidos:", req.body);
 
-        const { username, password, habilitado, nombre, apellido, telefono, email } = req.body;
+        const { username, password, habilitado, nombre, apellido, telefono, email, IdProfile } = req.body;
 
-        if (!username || !password || habilitado === undefined || !nombre || !apellido || !telefono || !email) {
+        if (!username || !password || habilitado === undefined || !nombre || !apellido || !telefono || !email || !IdProfile) {
             return res.status(400).json({ ok: false, msg: "Faltan datos obligatorios" });
         }
 
@@ -211,9 +211,13 @@ export const register = async (req, res) => {
             Apellido: apellido,
             Telefono: telefono,
             Email: email,
+            IdProfile: IdProfile, // <-- Agregado aquí
         });
 
         console.log("Generando el token...");
+        if (!SECRET_KEY) {
+            return res.status(500).json({ ok: false, msg: "Falta la clave secreta del JWT (JWT_SECRET)" });
+        }
         const token = jwt.sign(
             { id: newUser.Id, username: newUser.Username },
             SECRET_KEY,
