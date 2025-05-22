@@ -29,10 +29,7 @@ const Model = (sequelize) => {
         isEmail: true
       }
     },
-    Password: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
+   
     FechaRegistro: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW
@@ -41,15 +38,13 @@ const Model = (sequelize) => {
       type: DataTypes.INTEGER,
       defaultValue: 0
     },
-    UserId: { // Clave foránea para relacionar con Users
+    IdUser: { // Clave foránea para relacionar con Users
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: 'Users', // Nombre de la tabla referenciada
         key: 'Id'
-      },
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE'
+      }
     }
   }, {
     sequelize,
@@ -62,6 +57,12 @@ const Model = (sequelize) => {
         unique: true,
         fields: [
           { name: "Id" },
+        ]
+      },
+      {
+        name: "fki_fk_IdUser",
+        fields: [
+          { name: "IdUser" },
         ]
       }
     ]

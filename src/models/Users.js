@@ -21,30 +21,7 @@ const Users = (sequelize) => {
       type: DataTypes.BOOLEAN,
       allowNull: false
     },
-    // IdPerfil: {
-    //   type: DataTypes.INTEGER,
-    //   allowNull: false,
-    //   references: {
-    //     model: 'Perfiles',
-    //     key: 'Id'
-    //   }
-    // },
-    Nombre: {
-      type: DataTypes.TEXT,
-      allowNull: false
-    },
-    Apellido: {
-      type: DataTypes.TEXT,
-      allowNull: false
-    },
-    Telefono: {
-      type: DataTypes.TEXT,
-      allowNull: false
-    },
-    Email: {
-      type: DataTypes.TEXT,
-      allowNull: false
-    },
+   
     IdProfile: {
       type: DataTypes.INTEGER,
       allowNull: false,

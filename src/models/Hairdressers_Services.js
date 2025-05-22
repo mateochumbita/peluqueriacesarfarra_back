@@ -1,47 +1,56 @@
 import { DataTypes } from 'sequelize';
 
 const Model = (sequelize) => {
-  return sequelize.define('Earnings', {
+  return sequelize.define('Hairdressers_Services', {
     Id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       autoIncrement: true,
       primaryKey: true
     },
-    Importe:{
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false
-    },
-  
-   IdAppointment:{
+   IdHairdresser: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'Appointments',
+        model: 'Hairdressers',
         key: 'Id'
       }
-   }
-
-
+    },
+    IdService: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Services',
+        key: 'Id'
+      }
+    },
+    
   }, {
     sequelize,
-    tableName: 'Earnings',
+    tableName: 'Hairdressers_Services',
     schema: 'public',
     timestamps: false,
     indexes: [
       {
-        name: "Earnings_pkey",
+        name: "Hairdressers_Services_pkey",
         unique: true,
         fields: [
           { name: "Id" },
         ]
       },
       {
-        name: "Earnings_IdAppointment_fkey",
+        name: "fki_fk_IdHairdresser",
         fields: [
-          { name: "IdAppointment" },
+          { name: "IdHairdresser" },
         ]
       },
+      {
+        name: "fki_fk_IdService",
+        fields: [
+          { name: "IdService" },
+        ]
+      }
+       
     ]
   });
 };

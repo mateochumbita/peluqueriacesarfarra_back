@@ -8,7 +8,7 @@ const Model = (sequelize) => {
       autoIncrement: true,
       primaryKey: true
     },
-    ClienteId: {
+    IdCliente: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
@@ -16,14 +16,8 @@ const Model = (sequelize) => {
         key: 'Id'
       }
     },
-    PeluqueroId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'Hairdressers',
-        key: 'Id'
-      }
-    },
+    
+    
     Fecha: {
       type: DataTypes.DATEONLY,
       allowNull: false
@@ -32,18 +26,19 @@ const Model = (sequelize) => {
       type: DataTypes.TIME,
       allowNull: false
     },
-    Servicio: {
-      type: DataTypes.STRING,
-      allowNull: false
+  
+   IdHairdresser_Service: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Hairdressers_Services',
+        key: 'Id'
+      },
+      EstadoPago: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false
+      },
     },
-    Estado: {
-      type: DataTypes.ENUM('pendiente', 'confirmado', 'cancelado', 'completado', 'no_asistió'),
-      defaultValue: 'pendiente'
-    },
-    Notas: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    }
   }, {
     sequelize,
     tableName: 'Appointments',
@@ -60,13 +55,13 @@ const Model = (sequelize) => {
       {
         name: "fki_fk_ClienteId",
         fields: [
-          { name: "ClienteId" },
+          { name: "IdCliente" },
         ]
       },
       {
-        name: "fki_fk_PeluqueroId",
+        name: "fki_fk_IdHairdresser_Service",
         fields: [
-          { name: "PeluqueroId" },
+          { name: "IdHairdresser_Service" },
         ]
       }
     ]

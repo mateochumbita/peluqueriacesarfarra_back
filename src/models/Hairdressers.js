@@ -8,41 +8,34 @@ const Model = (sequelize) => {
       autoIncrement: true,
       primaryKey: true
     },
+     Dni: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     Nombre: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    Especialidad: {
+    Apellido:{
       type: DataTypes.STRING,
-      allowNull: true
-    },
-    Disponibilidad: {
-      type: DataTypes.JSON,
       allowNull: false
     },
-    Activo: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true
+    Email:{
+      type: DataTypes.STRING,
+      allowNull: false
     },
-    UserId: { // Clave foránea para relacionar con Users
+    Telefono:{
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+   
+    IdUser: { // Clave foránea para relacionar con Users
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: 'Users', // Nombre de la tabla referenciada
         key: 'Id'
-      },
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE'
-    },
-    IdService: { // Clave foránea para relacionar con Services
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'Services', // Nombre de la tabla referenciada
-        key: 'Id'
-      },
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE'
+      }
     }
   }, {
     sequelize,
@@ -55,6 +48,12 @@ const Model = (sequelize) => {
         unique: true,
         fields: [
           { name: "Id" },
+        ]
+      },
+      {
+        name: "Hairdressers_IdUser_idx", // Cambiado para evitar conflictos
+        fields: [
+          { name: "IdUser" },
         ]
       }
     ]

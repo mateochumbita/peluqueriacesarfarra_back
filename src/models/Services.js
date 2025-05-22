@@ -25,14 +25,7 @@ const Model = (sequelize) => {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    IdHairdresser: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'Hairdressers',
-        key: 'Id'
-      }
-    },
+  
   }, {
     sequelize,
     tableName: 'Services',
@@ -46,19 +39,7 @@ const Model = (sequelize) => {
           { name: "Id" },
         ]
       },
-        {
-            name: "fki_fk_IdHairdresser",
-            fields: [
-            { name: "IdHairdresser" },
-            ]
-        }
-    //   ,
-    //   {
-    //     name: "fki_fk_IdPerfil",
-    //     fields: [
-    //       { name: "IdPerfil" },
-    //     ]
-    //   },
+       
     ]
   });
 };

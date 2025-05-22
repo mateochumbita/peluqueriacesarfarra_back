@@ -11,14 +11,24 @@ const app = express();
 
 const models = initModels(sequelizeDB);
 
-// Sincronizar los modelos con la base de datos
-sequelizeDB.sync({ alter: true }) // Usa `alter: true` para actualizar las tablas existentes sin borrar datos
-    .then(() => {
-        console.log('Modelos sincronizados con la base de datos.');
-    })
-    .catch((error) => {
-        console.error('Error al sincronizar los modelos:', error);
-    });
+// async function syncModels() {
+//   try {
+//     // Orden recomendado según dependencias
+//     await models.Profiles.sync({ force: true });
+//     await models.Users.sync({ force: true });
+//     await models.Clients.sync({ force: true });
+//     await models.Services.sync({ force: true });
+//     await models.Hairdressers.sync({ force: true });
+//     await models.Hairdressers_Services.sync({ force: true });
+//     await models.Appointments.sync({ force: true });
+//     await models.Earnings.sync({ force: true });
+//     console.log('Todas las tablas fueron eliminadas y recreadas en orden.');
+//   } catch (error) {
+//     console.error('Error al sincronizar los modelos:', error);
+//   }
+// }
+
+// syncModels();
 
 // Middlewares
 app.use(cors({
