@@ -1,6 +1,6 @@
 import express from 'express';
 import { 
-    createHairdressers, 
+    createHairdresserWithUser, 
     getAllHairdressers, 
     getHairdresserById, 
     updateHairdresser, 
@@ -11,7 +11,7 @@ import {
 const router = express.Router();
 
 // Rutas para los peluqueros
-router.post('/', createHairdressers); // Crear un peluquero
+router.post('/', createHairdresserWithUser); // Crear un peluquero
 router.get('/', getAllHairdressers); // Obtener todos los peluqueros
 router.get('/search', searchHairdressers); // Buscar peluqueros con filtros
 router.get('/:id', getHairdresserById); // Obtener un peluquero por ID

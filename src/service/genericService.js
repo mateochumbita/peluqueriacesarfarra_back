@@ -13,6 +13,7 @@ const SECRET_KEY = process.env.JWT_SECRET;
 
 const Users = models.Users;
 const Appointments = models.Appointments;
+const Clients = models.Clients;
 
 
 // Crear un registro en la base de datos local y Supabase
@@ -178,58 +179,84 @@ export const search = (Model, supabaseTable) => async (req, res) => {
 
 // Registro de usuarios
 export const register = async (req, res) => {
-    try {
-        console.log("Datos recibidos:", req.body);
+  try {
+    console.log("Datos recibidos:", req.body);
 
-        const { username, password, habilitado, nombre, apellido, telefono, email, IdProfile } = req.body;
+    const {
+      username,
+      password,
+      habilitado,
+      IdProfile,
+      dni,
+      nombre,
+      telefono,
+      email
+    } = req.body;
 
-        if (!username || !password || habilitado === undefined || !nombre || !apellido || !telefono || !email || !IdProfile) {
-            return res.status(400).json({ ok: false, msg: "Faltan datos obligatorios" });
-        }
-
-        console.log("Verificando el número de usuarios existentes...");
-        const userCount = await Users.count();
-        if (userCount >= 5) {
-            return res.status(400).json({ ok: false, msg: "Se ha alcanzado el límite de 5 usuarios" });
-        }
-
-        console.log("Verificando si el usuario ya existe...");
-        const user = await Users.findOne({ where: { Username: username } });
-        if (user) {
-            return res.status(400).json({ ok: false, msg: "El usuario ya existe" });
-        }
-
-        console.log("Hasheando la contraseña...");
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        console.log("Creando el nuevo usuario...");
-        const newUser = await Users.create({
-            Username: username,
-            Password: hashedPassword,
-            Habilitado: habilitado,
-            Nombre: nombre,
-            Apellido: apellido,
-            Telefono: telefono,
-            Email: email,
-            IdProfile: IdProfile, // <-- Agregado aquí
-        });
-
-        console.log("Generando el token...");
-        if (!SECRET_KEY) {
-            return res.status(500).json({ ok: false, msg: "Falta la clave secreta del JWT (JWT_SECRET)" });
-        }
-        const token = jwt.sign(
-            { id: newUser.Id, username: newUser.Username },
-            SECRET_KEY,
-            { expiresIn: '24h' }
-        );
-
-        console.log("Usuario creado exitosamente:", newUser);
-        return res.status(201).json({ ok: true, token });
-    } catch (error) {
-        console.error("Error en el registro:", error);
-        return res.status(500).json({ ok: false, msg: "Error en el servidor" });
+    // Validaciones mínimas necesarias
+    if (!username || !password || habilitado === undefined || !IdProfile ||
+        !dni || !nombre || !telefono || !email) {
+      return res.status(400).json({ ok: false, msg: "Faltan datos obligatorios" });
     }
+
+    const userCount = await Users.count();
+    if (userCount >= 5) {
+      return res.status(400).json({ ok: false, msg: "Se ha alcanzado el límite de 5 usuarios" });
+    }
+
+    const existingUser = await Users.findOne({ where: { Username: username } });
+    if (existingUser) {
+      return res.status(400).json({ ok: false, msg: "El nombre de usuario ya existe" });
+    }
+
+    const existingClient = await Clients.findOne({ where: { Email: email } });
+    if (existingClient) {
+      return res.status(400).json({ ok: false, msg: "El email ya está registrado como cliente" });
+    }
+
+    console.log("Hasheando contraseña...");
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    console.log("Creando usuario...");
+    const newUser = await Users.create({
+      Username: username,
+      Password: hashedPassword,
+      Habilitado: habilitado,
+      IdProfile: IdProfile
+    });
+
+    console.log("Creando cliente vinculado al usuario...");
+    const newClient = await Clients.create({
+      Dni: dni,
+      Nombre: nombre,
+      Telefono: telefono,
+      Email: email,
+      IdUser: newUser.Id
+    });
+
+    console.log("Generando token...");
+    if (!SECRET_KEY) {
+      return res.status(500).json({ ok: false, msg: "JWT_SECRET no definido en variables de entorno" });
+    }
+
+    const token = jwt.sign(
+      { id: newUser.Id, username: newUser.Username },
+      SECRET_KEY,
+      { expiresIn: '24h' }
+    );
+
+    return res.status(201).json({
+      ok: true,
+      msg: "Usuario y cliente registrados con éxito",
+      token,
+      userId: newUser.Id,
+      clientId: newClient.Id
+    });
+
+  } catch (error) {
+    console.error("Error en el registro:", error);
+    return res.status(500).json({ ok: false, msg: "Error en el servidor" });
+  }
 };
 
 // Login de usuarios

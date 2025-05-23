@@ -1,30 +1,60 @@
 import jwt from 'jsonwebtoken';
+import initModels from '../models/init-models.js';
+import { sequelizeDB } from '../database/connection.database.js';
 
-export const authenticateToken = (req, res, next) => {
-    // Obtener el token del encabezado de autorización
+// Inicializar modelos igual que en tus controllers
+const models = initModels(sequelizeDB);
+const Users = models.Users;
+const Profiles = models.Profiles;
+
+export const authenticateToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
-
-    // Verificar si el encabezado de autorización está presente
     if (!authHeader) {
         return res.status(403).json({ message: 'Authorization header is missing' });
     }
 
-    // El token puede venir como "Bearer <token>", extraemos solo el token
     const token = authHeader.split(' ')[1];
-
     if (!token) {
         return res.status(403).json({ message: 'Token not provided in the authorization header' });
     }
 
-    // Verificar y decodificar el token
-    jwt.verify(token, process.env.JWT_SECRET || 'newToken', (err, decoded) => {
-        if (err) {
-            return res.status(401).json({ message: 'Invalid or expired token' });
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'newToken');
+        const user = await Users.findByPk(decoded.id, {
+            include: {
+                model: Profiles,
+                as: 'Profile',
+                attributes: ['Nombre']
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
         }
 
-        // Agregar información del usuario al objeto `req`
-        req.userId = decoded.id;
-        req.userRole = decoded.role || null; // Si se usa el rol en el token
-        next();
-    });
+        const profileName = user.Profile?.Nombre?.toLowerCase();
+
+        req.userId = user.Id;
+        req.userRole = profileName;
+
+        const path = req.path.toLowerCase();
+
+        // Acceso total para admin
+        if (profileName === 'admin') {
+            return next();
+        }
+
+        // Acceso solo a rutas de cliente para cliente
+        if (profileName === 'cliente') {
+            if (path.startsWith('/clients') || path.startsWith('/appointments')) {
+                return next();
+            }
+            return res.status(403).json({ message: 'Access denied for client role' });
+        }
+
+        return res.status(403).json({ message: 'Access denied: unknown profile role' });
+
+    } catch (err) {
+        return res.status(401).json({ message: 'Invalid or expired token' });
+    }
 };
