@@ -26,6 +26,10 @@ const Model = (sequelize) => {
       type: DataTypes.TIME,
       allowNull: false
     },
+    EstadoPago: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false
+    },
   
    IdHairdresser_Service: {
       type: DataTypes.INTEGER,

@@ -1,90 +1,63 @@
 import { findAll, findOne, update, remove, search } from '../../service/genericService.js';
 import initModels from '../../models/init-models.js';
 import { sequelizeDB } from '../../database/connection.database.js';
-import { Op } from 'sequelize'; // <-- AGREGA ESTA LÍNEA
+import { Op } from 'sequelize';
 
 const models = initModels(sequelizeDB);
 const Appointments = models.Appointments;
-const Availabilities = models.Availabilities;
+const Earnings = models.Earnings;
+const Hairdressers_Services = models.Hairdressers_Services;
+const Services = models.Services;
 const supabaseTable = 'Appointments';
 
-// Utilidad para obtener el nombre del día en español
-function getDiaSemana(fecha) {
-  const dias = [
-    'domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'
-  ];
-  const [year, month, day] = fecha.split('-').map(Number);
-  const date = new Date(year, month - 1, day); // Mes base 0
-  return dias[date.getDay()];
-}
-
-// Crear Appointment con validaciones
+// Crear Appointment y replicar en Earnings
 export const createAppointment = async (req, res) => {
   try {
-    const { PeluqueroId, Fecha, Hora, ClienteId, Notas } = req.body;
+    const { IdCliente, Fecha, Hora, IdHairdresser_Service, EstadoPago } = req.body;
 
-    // 1. Validar disponibilidad del peluquero
-    const diaSemana = getDiaSemana(Fecha);
-
-    const disponibilidad = await Availabilities.findOne({
-      where: {
-        HairdresserId: PeluqueroId,
-        DiaSemana: diaSemana,
-        Activo: true,
-        HoraInicio: { [Op.lte]: Hora },
-        HoraFin: { [Op.gt]: Hora }
-      }
-    });
-
-    if (!disponibilidad) {
-      return res.status(400).json({
-        error: 'El peluquero no está disponible en ese día y horario.'
-      });
-    }
-
-    // 2. Validar que no haya otro turno en ese horario
+    // 1. Validar que no haya otro turno igual
     const turnoExistente = await Appointments.findOne({
       where: {
-        PeluqueroId,
+        IdCliente,
         Fecha,
-        Hora
+        Hora,
+        IdHairdresser_Service
       }
     });
 
     if (turnoExistente) {
       return res.status(400).json({
-        error: 'Ya existe un turno para ese peluquero en ese día y horario.'
+        error: 'Ya existe un turno para ese cliente, servicio y horario.'
       });
     }
 
-    // 3. Obtener el servicio que ofrece el peluquero
-    const hairdresser = await models.Hairdressers.findByPk(PeluqueroId, {
-      include: {
-        model: models.Services,
-        as: 'Service'
-      }
-    });
-
-    if (!hairdresser || !hairdresser.Service) {
-      return res.status(400).json({
-        error: 'No se pudo determinar el servicio del peluquero.'
-      });
+    // 2. Buscar el precio del servicio
+    const hairdresserService = await Hairdressers_Services.findByPk(IdHairdresser_Service);
+    if (!hairdresserService) {
+      return res.status(400).json({ error: 'No se encontró el servicio del peluquero.' });
     }
 
-    // Si querés guardar el nombre del servicio como string (opcional):
-    const nombreServicio = hairdresser.Service.nombre;
-    console.log('Nombre del servicio:', nombreServicio);
+    const service = await Services.findByPk(hairdresserService.IdService);
+    if (!service) {
+      return res.status(400).json({ error: 'No se encontró el servicio.' });
+    }
 
-    // 4. Crear el turno con la info correcta
+    // 3. Crear el turno (EstadoPago es obligatorio según tu modelo)
     const nuevoTurno = await Appointments.create({
-      ClienteId,
-      PeluqueroId,
+      IdCliente,
       Fecha,
       Hora,
-      Servicio: nombreServicio, // Opcional: si mantenés el campo "Servicio"
-      Estado: 'pendiente',
-      Notas
+      IdHairdresser_Service,
+      EstadoPago
     });
+
+    // 4. Solo si EstadoPago es true, crear el registro en Earnings
+    if (EstadoPago === true || EstadoPago === 'true') {
+      await Earnings.create({
+        Importe: service.Precio,
+        IdAppointment: nuevoTurno.Id
+      });
+    }
 
     res.status(201).json(nuevoTurno);
 
@@ -94,9 +67,53 @@ export const createAppointment = async (req, res) => {
   }
 };
 
-
 export const getAllAppointments = findAll(Appointments, supabaseTable);
 export const getAppointmentById = findOne(Appointments);
-export const updateAppointment = update(Appointments, supabaseTable);
+export const updateAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { EstadoPago, ...rest } = req.body;
+
+    // Buscar el turno existente
+    const turno = await Appointments.findByPk(id);
+    if (!turno) {
+      return res.status(404).json({ error: 'Turno no encontrado.' });
+    }
+
+    // Guardar el valor anterior de EstadoPago
+    const estadoPagoAnterior = turno.EstadoPago;
+
+    // Actualizar el turno
+    await turno.update({ ...rest, ...(EstadoPago !== undefined ? { EstadoPago } : {}) });
+
+    // Si EstadoPago cambió de false a true, crear el registro en Earnings (si no existe)
+    if (
+      estadoPagoAnterior === false &&
+      (EstadoPago === true || EstadoPago === 'true')
+    ) {
+      // Verificar si ya existe un registro en Earnings para este turno
+      const existeEarning = await Earnings.findOne({ where: { IdAppointment: turno.Id } });
+      if (!existeEarning) {
+        // Buscar el precio del servicio
+        const hairdresserService = await Hairdressers_Services.findByPk(turno.IdHairdresser_Service);
+        if (hairdresserService) {
+          const service = await Services.findByPk(hairdresserService.IdService);
+          if (service) {
+            await Earnings.create({
+              Importe: service.Precio,
+              IdAppointment: turno.Id
+            });
+          }
+        }
+      }
+    }
+
+    res.status(200).json(turno);
+
+  } catch (error) {
+    console.error('Error al actualizar el turno:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
 export const deleteAppointment = remove(Appointments, supabaseTable);
 export const searchAppointments = search(Appointments, supabaseTable);
