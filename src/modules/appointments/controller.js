@@ -2,6 +2,8 @@ import { findAll, findOne, update, remove, search } from '../../service/genericS
 import initModels from '../../models/init-models.js';
 import { sequelizeDB } from '../../database/connection.database.js';
 import { Op } from 'sequelize';
+import { sendAppointmentConfirmation } from '../../middlewares/sendAppointmentConfirmation.js';
+import { sendAppointmentPaymentConfirmation } from '../../middlewares/sendAppointmentPaymentConfirmation.js';
 
 const models = initModels(sequelizeDB);
 const Appointments = models.Appointments;
@@ -57,6 +59,27 @@ export const createAppointment = async (req, res) => {
         Importe: service.Precio,
         IdAppointment: nuevoTurno.Id
       });
+      // Enviar email de confirmación de pago
+      try {
+        await sendAppointmentPaymentConfirmation(
+          { body: { ...req.body, IdAppointment: nuevoTurno.Id } }, // <-- Se agrega el IdAppointment
+          res,
+          () => {}
+        );
+      } catch (e) {
+        // El error ya se loguea en el middleware, no hace falta más manejo aquí
+      }
+    }
+
+    // Enviar email de confirmación de turno (no frena el flujo si falla)
+    try {
+      await sendAppointmentConfirmation(
+        { body: { ...req.body, IdAppointment: nuevoTurno.Id } }, // <-- Se agrega el IdAppointment
+        res,
+        () => {}
+      );
+    } catch (e) {
+      // El error ya se loguea en el middleware, no hace falta más manejo aquí
     }
 
     res.status(201).json(nuevoTurno);
@@ -105,6 +128,16 @@ export const updateAppointment = async (req, res) => {
             });
           }
         }
+      }
+      // Enviar email de confirmación de pago
+      try {
+        await sendAppointmentPaymentConfirmation(
+          { body: { ...turno.dataValues, IdAppointment: turno.Id } }, // <-- Se agrega el IdAppointment
+          res,
+          () => {}
+        );
+      } catch (e) {
+        // El error ya se loguea en el middleware, no hace falta más manejo aquí
       }
     }
 
