@@ -46,7 +46,7 @@ export const authenticateToken = async (req, res, next) => {
 
         // Acceso solo a rutas de cliente para cliente
         if (profileName === 'cliente') {
-            if (path.startsWith('/clients') || path.startsWith('/appointments')) {
+            if (path.startsWith('/clients') ) {
                 return next();
             }
             return res.status(403).json({ message: 'Access denied for client role' });
