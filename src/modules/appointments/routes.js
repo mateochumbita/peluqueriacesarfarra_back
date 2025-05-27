@@ -5,13 +5,15 @@ import {
     getAppointmentById, 
     updateAppointment, 
     deleteAppointment, 
-    searchAppointments 
+    searchAppointments,
+    getAppointmentsStats
 } from './controller.js';
 
 const router = express.Router();
 
 // Rutas para las citas
 router.post('/', createAppointment); // Crear una cita
+router.get('/stats', getAppointmentsStats); // Obtener estadísticas de citas
 router.get('/', getAllAppointments); // Obtener todas las citas
 router.get('/search', searchAppointments); // Buscar citas con filtros
 router.get('/:id', getAppointmentById); // Obtener una cita por ID

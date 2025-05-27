@@ -26,8 +26,8 @@ const Model = (sequelize) => {
       type: DataTypes.TIME,
       allowNull: false
     },
-    EstadoPago: {
-      type: DataTypes.BOOLEAN,
+    Estado: {
+      type: DataTypes.ENUM('Reservado', 'Pagado', 'Cancelado'),
       allowNull: false
     },
   

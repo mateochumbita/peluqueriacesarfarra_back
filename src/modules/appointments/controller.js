@@ -15,12 +15,11 @@ const supabaseTable = 'Appointments';
 // Crear Appointment y replicar en Earnings
 export const createAppointment = async (req, res) => {
   try {
-    const { IdCliente, Fecha, Hora, IdHairdresser_Service, EstadoPago } = req.body;
+    const { IdCliente, Fecha, Hora, IdHairdresser_Service, Estado } = req.body;
 
-    // 1. Validar que no haya otro turno igual
+    // 1. Validar que no haya otro turno igual (misma fecha, hora y servicio)
     const turnoExistente = await Appointments.findOne({
       where: {
-        IdCliente,
         Fecha,
         Hora,
         IdHairdresser_Service
@@ -29,7 +28,7 @@ export const createAppointment = async (req, res) => {
 
     if (turnoExistente) {
       return res.status(400).json({
-        error: 'Ya existe un turno para ese cliente, servicio y horario.'
+        error: 'Turno ya reservado para esta fecha, hora y servicio.'
       });
     }
 
@@ -50,11 +49,11 @@ export const createAppointment = async (req, res) => {
       Fecha,
       Hora,
       IdHairdresser_Service,
-      EstadoPago
+      Estado
     });
 
     // 4. Solo si EstadoPago es true, crear el registro en Earnings
-    if (EstadoPago === true || EstadoPago === 'true') {
+    if (Estado === 'Pagado' ) {
       await Earnings.create({
         Importe: service.Precio,
         IdAppointment: nuevoTurno.Id
@@ -95,7 +94,7 @@ export const getAppointmentById = findOne(Appointments);
 export const updateAppointment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { EstadoPago, ...rest } = req.body;
+    const { Estado, ...rest } = req.body;
 
     // Buscar el turno existente
     const turno = await Appointments.findByPk(id);
@@ -103,18 +102,11 @@ export const updateAppointment = async (req, res) => {
       return res.status(404).json({ error: 'Turno no encontrado.' });
     }
 
-    // Guardar el valor anterior de EstadoPago
-    const estadoPagoAnterior = turno.EstadoPago;
-
     // Actualizar el turno
-    await turno.update({ ...rest, ...(EstadoPago !== undefined ? { EstadoPago } : {}) });
+    await turno.update({ Estado, ...rest });
 
-    // Si EstadoPago cambió de false a true, crear el registro en Earnings (si no existe)
-    if (
-      estadoPagoAnterior === false &&
-      (EstadoPago === true || EstadoPago === 'true')
-    ) {
-      // Verificar si ya existe un registro en Earnings para este turno
+    // Si Estado es 'Pagado', crear el registro en Earnings si no existe
+    if (Estado === 'Pagado') {
       const existeEarning = await Earnings.findOne({ where: { IdAppointment: turno.Id } });
       if (!existeEarning) {
         // Buscar el precio del servicio
@@ -129,10 +121,17 @@ export const updateAppointment = async (req, res) => {
           }
         }
       }
+
+      // Sumar 1 punto de fidelidad al cliente
+      const client = await models.Clients.findByPk(turno.IdCliente);
+      if (client) {
+        await client.increment('PuntosFidelidad', { by: 1 });
+      }
+
       // Enviar email de confirmación de pago
       try {
         await sendAppointmentPaymentConfirmation(
-          { body: { ...turno.dataValues, IdAppointment: turno.Id } }, // <-- Se agrega el IdAppointment
+          { body: { ...turno.dataValues, IdAppointment: turno.Id } },
           res,
           () => {}
         );
@@ -150,3 +149,162 @@ export const updateAppointment = async (req, res) => {
 };
 export const deleteAppointment = remove(Appointments, supabaseTable);
 export const searchAppointments = search(Appointments, supabaseTable);
+export const getAppointmentsStats = async (req, res) => {
+  try {
+    const capacidadMaximaDia = 36;
+
+    // Fechas útiles
+    const hoy = new Date();
+    const hoyStr = hoy.toISOString().slice(0, 10);
+
+    // Semana actual (lunes a domingo)
+    const diaSemana = hoy.getDay() === 0 ? 6 : hoy.getDay() - 1; // 0=domingo
+    const inicioSemana = new Date(hoy);
+    inicioSemana.setDate(hoy.getDate() - diaSemana);
+    const finSemana = new Date(inicioSemana);
+    finSemana.setDate(inicioSemana.getDate() + 6);
+
+    // Mes actual
+    const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    const finMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+
+    // Periodos anteriores
+    const inicioSemanaAnterior = new Date(inicioSemana);
+    inicioSemanaAnterior.setDate(inicioSemana.getDate() - 7);
+    const finSemanaAnterior = new Date(inicioSemanaAnterior);
+    finSemanaAnterior.setDate(inicioSemanaAnterior.getDate() + 6);
+
+    const inicioMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+    const finMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+
+    // Helper para formato YYYY-MM-DD
+    const toDateStr = d => d.toISOString().slice(0, 10);
+
+    // --- Turnos ---
+    // Hoy
+    const turnosHoy = await Appointments.count({ where: { Fecha: hoyStr } });
+    // Semana actual
+    const turnosSemana = await Appointments.count({
+      where: {
+        Fecha: { [Op.between]: [toDateStr(inicioSemana), toDateStr(finSemana)] }
+      }
+    });
+    // Mes actual
+    const turnosMes = await Appointments.count({
+      where: {
+        Fecha: { [Op.between]: [toDateStr(inicioMes), toDateStr(finMes)] }
+      }
+    });
+
+    // --- Turnos anteriores ---
+    // Semana anterior
+    const turnosSemanaAnterior = await Appointments.count({
+      where: {
+        Fecha: { [Op.between]: [toDateStr(inicioSemanaAnterior), toDateStr(finSemanaAnterior)] }
+      }
+    });
+    // Mes anterior
+    const turnosMesAnterior = await Appointments.count({
+      where: {
+        Fecha: { [Op.between]: [toDateStr(inicioMesAnterior), toDateStr(finMesAnterior)] }
+      }
+    });
+
+    // --- Cancelaciones ---
+    // Hoy
+    const cancelacionesHoy = await Appointments.count({
+      where: { Fecha: hoyStr, Estado: 'Cancelado' }
+    });
+    // Semana actual
+    const cancelacionesSemana = await Appointments.count({
+      where: {
+        Fecha: { [Op.between]: [toDateStr(inicioSemana), toDateStr(finSemana)] },
+        Estado: 'Cancelado'
+      }
+    });
+    // Mes actual
+    const cancelacionesMes = await Appointments.count({
+      where: {
+        Fecha: { [Op.between]: [toDateStr(inicioMes), toDateStr(finMes)] },
+        Estado: 'Cancelado'
+      }
+    });
+
+    // --- Cancelaciones anteriores ---
+    // Semana anterior
+    const cancelacionesSemanaAnterior = await Appointments.count({
+      where: {
+        Fecha: { [Op.between]: [toDateStr(inicioSemanaAnterior), toDateStr(finSemanaAnterior)] },
+        Estado: 'Cancelado'
+      }
+    });
+    // Mes anterior
+    const cancelacionesMesAnterior = await Appointments.count({
+      where: {
+        Fecha: { [Op.between]: [toDateStr(inicioMesAnterior), toDateStr(finMesAnterior)] },
+        Estado: 'Cancelado'
+      }
+    });
+
+    // --- Tasa de ocupación ---
+    // Por día del mes actual
+    const diasMes = finMes.getDate();
+    const tasaOcupacionMes = (turnosMes / (diasMes * capacidadMaximaDia)) * 100;
+    // Mes anterior
+    const diasMesAnterior = finMesAnterior.getDate();
+    const tasaOcupacionMesAnterior = (turnosMesAnterior / (diasMesAnterior * capacidadMaximaDia)) * 100;
+
+    // Por semana actual
+    const tasaOcupacionSemana = (turnosSemana / (7 * capacidadMaximaDia)) * 100;
+    const tasaOcupacionSemanaAnterior = (turnosSemanaAnterior / (7 * capacidadMaximaDia)) * 100;
+
+    // Por hoy
+    const tasaOcupacionHoy = (turnosHoy / capacidadMaximaDia) * 100;
+
+    // Redondear tasas a 1 decimal
+    const tasaOcupacionHoyRed = parseFloat(tasaOcupacionHoy.toFixed(1));
+    const tasaOcupacionSemanaRed = parseFloat(tasaOcupacionSemana.toFixed(1));
+    const tasaOcupacionMesRed = parseFloat(tasaOcupacionMes.toFixed(1));
+    const tasaOcupacionSemanaAnteriorRed = parseFloat(tasaOcupacionSemanaAnterior.toFixed(1));
+    const tasaOcupacionMesAnteriorRed = parseFloat(tasaOcupacionMesAnterior.toFixed(1));
+
+    // Helper para calcular variación porcentual con 1 decimal
+    const variacion = (actual, anterior) =>
+      anterior === 0
+        ? (actual > 0 ? 100.0 : 0.0)
+        : parseFloat((((actual - anterior) / anterior) * 100).toFixed(1));
+
+    res.json({
+      turnos: {
+        hoy: turnosHoy,
+        semana: turnosSemana,
+        mes: turnosMes,
+        semanaAnterior: turnosSemanaAnterior,
+        mesAnterior: turnosMesAnterior,
+        variacionSemana: variacion(turnosSemana, turnosSemanaAnterior),
+        variacionMes: variacion(turnosMes, turnosMesAnterior)
+      },
+      tasaOcupacion: {
+        hoy: tasaOcupacionHoyRed,
+        semana: tasaOcupacionSemanaRed,
+        mes: tasaOcupacionMesRed,
+        semanaAnterior: tasaOcupacionSemanaAnteriorRed,
+        mesAnterior: tasaOcupacionMesAnteriorRed,
+        variacionSemana: variacion(tasaOcupacionSemana, tasaOcupacionSemanaAnterior),
+        variacionMes: variacion(tasaOcupacionMes, tasaOcupacionMesAnterior)
+      },
+      cancelaciones: {
+        hoy: cancelacionesHoy,
+        semana: cancelacionesSemana,
+        mes: cancelacionesMes,
+        semanaAnterior: cancelacionesSemanaAnterior,
+        mesAnterior: cancelacionesMesAnterior,
+        variacionSemana: variacion(cancelacionesSemana, cancelacionesSemanaAnterior),
+        variacionMes: variacion(cancelacionesMes, cancelacionesMesAnterior)
+      }
+    });
+  } catch (error) {
+    console.error('Error en getAppointmentsStats:', error);
+    res.status(500).json({ error: error.message });
+  }
+};

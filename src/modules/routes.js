@@ -9,12 +9,10 @@ import earningsRoutes from './earnings/routes.js'; // Importar las rutas de gana
 
 import servicesRoutes from './services/routes.js'; // Importar las rutas de servicios
 import hairdresserServicesRoutes from './hairdressers_services/routes.js'; // Importar las rutas de hairdressers_services
+import authRoutes from './auth/routes.js'; // <--- Importa el router de auth
 
-
-// import productRoutes from './products/routes.js';
 import { authenticateToken } from '../middlewares/authenticateToken.js';
 
-import { register, login } from '../service/genericService.js';
 const router = express.Router();
 
 // Asignar rutas de cada módulo a un endpoint general
@@ -26,8 +24,7 @@ router.use('/appointments', authenticateToken, appointmentRoutes); // Rutas de c
 
 
 //RUTAS LIBRES DE AUTHENTICACION
-router.post('/auth/register',register); // Rutas de registro de usuarios
-router.post('/auth/login', login); // Rutas de inicio de sesión de usuarios
+router.use('/auth', authRoutes); 
 
 router.use('/earnings', authenticateToken, earningsRoutes); // Rutas de ganancias
 router.use('/services', authenticateToken, servicesRoutes); // Rutas de servicios
