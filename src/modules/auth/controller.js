@@ -2,7 +2,7 @@ import initModels from "../../models/init-models.js";
 import { sequelizeDB } from "../../database/connection.database.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { sendWelcomeEmail } from '../../middlewares/SendWelcome.js';
+
 
 const models = initModels(sequelizeDB);
 const Users = models.Users;
@@ -71,16 +71,7 @@ export const register = async (req, res) => {
     console.log("Nuevo cliente creado:", newClient);
     
 
-    // Enviar email de bienvenida de forma segura
-    try {
-      await sendWelcomeEmail(
-        { body: { IdCliente: newClient.Id } }, // Usa dataValues.Id
-        res,
-        () => {}
-      );
-    } catch (e) {
-      // El error ya se loguea en el middleware, no hace falta más manejo aquí
-    }
+   
 
     if (!SECRET_KEY) {
       return res
