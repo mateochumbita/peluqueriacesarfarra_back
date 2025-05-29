@@ -151,7 +151,7 @@ export const deleteAppointment = remove(Appointments, supabaseTable);
 export const searchAppointments = search(Appointments, supabaseTable);
 export const getAppointmentsStats = async (req, res) => {
   try {
-    const capacidadMaximaDia = 36;
+    const capacidadMaximaDia = 30;
 
     // Fechas útiles
     const hoy = new Date();

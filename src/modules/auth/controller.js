@@ -74,7 +74,7 @@ export const register = async (req, res) => {
     // Enviar email de bienvenida de forma segura
     try {
       await sendWelcomeEmail(
-        { body: { IdCliente: newClient.dataValues.Id } }, // Usa dataValues.Id
+        { body: { IdCliente: newClient.Id } }, // Usa dataValues.Id
         res,
         () => {}
       );
