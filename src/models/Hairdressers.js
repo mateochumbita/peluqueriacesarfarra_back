@@ -16,10 +16,7 @@ const Model = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    Apellido:{
-      type: DataTypes.STRING,
-      allowNull: false
-    },
+   
     Email:{
       type: DataTypes.STRING,
       allowNull: false
