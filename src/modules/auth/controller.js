@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 const models = initModels(sequelizeDB);
 const Users = models.Users;
 const Clients = models.Clients;
+const Profiles = models.Profiles;
 const SECRET_KEY = process.env.JWT_SECRET;
 
 // Registro de usuarios
@@ -45,15 +46,17 @@ export const register = async (req, res) => {
         .json({ ok: false, msg: "El nombre de usuario ya existe" });
     }
 
-    const existingClient = await Clients.findOne({ where: { Email: email } });
-    if (existingClient) {
+    // Verificar el perfil
+    const profile = await models.Profiles.findByPk(IdProfile);
+    if (!profile) {
       return res
         .status(400)
-        .json({ ok: false, msg: "El email ya está registrado como cliente" });
+        .json({ ok: false, msg: "Perfil inválido" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Crear el usuario
     const newUser = await Users.create({
       Username: username,
       Password: hashedPassword,
@@ -61,25 +64,50 @@ export const register = async (req, res) => {
       IdProfile: IdProfile,
     });
 
-    const newClient = await Clients.create({
-      Dni: dni,
-      Nombre: nombre,
-      Telefono: telefono,
-      Email: email,
-      IdUser: newUser.Id,
-    });
-    console.log("Nuevo cliente creado:", newClient);
-    
+    let createdEntity = null;
+    let entityType = "";
 
-   
+    if (profile.Nombre.toLowerCase() === "cliente") {
+      // Validar duplicado en Clients
+      const existingClient = await Clients.findOne({ where: { Email: email } });
+      if (existingClient) {
+        return res.status(400).json({ ok: false, msg: "El email ya está registrado como cliente" });
+      }
 
+      createdEntity = await Clients.create({
+        Dni: dni,
+        Nombre: nombre,
+        Telefono: telefono,
+        Email: email,
+        IdUser: newUser.Id,
+      });
+      entityType = "cliente";
+
+    } else if (profile.Nombre.toLowerCase() === "admin") {
+      // Validar duplicado en Hairdressers
+      const existingHairdresser = await models.Hairdressers.findOne({ where: { Email: email } });
+      if (existingHairdresser) {
+        return res.status(400).json({ ok: false, msg: "El email ya está registrado como peluquero" });
+      }
+
+      createdEntity = await models.Hairdressers.create({
+        Dni: dni,
+        Nombre: nombre,
+        Telefono: telefono,
+        Email: email,
+        IdUser: newUser.Id,
+      });
+      entityType = "peluquero";
+    } else {
+      return res.status(400).json({ ok: false, msg: "Tipo de perfil no soportado para registro automático" });
+    }
+
+    // Crear token
     if (!SECRET_KEY) {
-      return res
-        .status(500)
-        .json({
-          ok: false,
-          msg: "JWT_SECRET no definido en variables de entorno",
-        });
+      return res.status(500).json({
+        ok: false,
+        msg: "JWT_SECRET no definido en variables de entorno",
+      });
     }
 
     const token = jwt.sign(
@@ -90,10 +118,10 @@ export const register = async (req, res) => {
 
     return res.status(201).json({
       ok: true,
-      msg: "Usuario y cliente registrados con éxito",
+      msg: `Usuario y ${entityType} registrados con éxito`,
       token,
       userId: newUser.Id,
-      clientId: newClient.Id,
+      entityId: createdEntity.Id,
     });
   } catch (error) {
     console.error("Error en el registro:", error);
