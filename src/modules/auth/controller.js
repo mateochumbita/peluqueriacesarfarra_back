@@ -138,7 +138,14 @@ export const login = async (req, res) => {
       return res.status(400).json({ ok: false, msg: "Faltan datos" });
     }
 
-    const user = await Users.findOne({ where: { Username: username } });
+    const user = await Users.findOne({
+      where: { Username: username },
+      include: {
+        model: Profiles,
+        as: 'Profile',
+        attributes: ['Nombre']
+      }
+    });
 
     if (!user) {
       return res.status(400).json({ ok: false, msg: "Usuario no encontrado" });
@@ -161,7 +168,16 @@ export const login = async (req, res) => {
       { expiresIn: "24h" }
     );
 
-    return res.status(200).json({ ok: true, token, user });
+    return res.status(200).json({
+      ok: true,
+      token,
+      user: {
+        Id: user.Id,
+        Username: user.Username,
+        IdProfile: user.IdProfile,
+        Profile: user.Profile // contiene { Nombre: "admin" }
+      }
+    });
   } catch (error) {
     console.error("Error en el inicio de sesión:", error);
     return res.status(500).json({ ok: false, msg: "Error en el servidor" });
