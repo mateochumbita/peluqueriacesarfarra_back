@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import { sequelizeDB } from "./database/connection.database.js";
 import router from "./modules/routes.js";
-import initModels from './models/init-models.js';
+import initModels from "./models/init-models.js";
 dotenv.config();
 
 const app = express();
@@ -31,10 +31,17 @@ const models = initModels(sequelizeDB);
 // syncModels();
 
 // Middlewares
-app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001",  "http://localhost:5173" ],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:5173",
+      "https://peluqueriacesarfarra-front.vercel.app/"
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json()); // Middleware para procesar JSON
 app.use(express.urlencoded({ extended: true })); // Middleware para procesar datos de formularios
 app.use(cookieParser());
