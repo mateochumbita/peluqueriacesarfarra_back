@@ -137,3 +137,23 @@ export const getClientsStats = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+export const getClientByUserId = async (req, res) => {
+  const { idUser } = req.params;
+
+  try {
+    const client = await Clients.findOne({
+      where: { IdUser: idUser }
+    });
+
+    if (!client) {
+      return res.status(404).json({ message: 'Cliente no encontrado para el IdUser proporcionado' });
+    }
+
+    res.json(client);
+  } catch (error) {
+    console.error('Error en getClientByUserId:', error);
+    res.status(500).json({ error: error.message });
+  }
+};

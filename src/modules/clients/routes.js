@@ -6,7 +6,8 @@ import {
     updateClient, 
     deleteClient, 
     searchClients,
-    getClientsStats
+    getClientsStats,
+    getClientByUserId
 } from './controller.js';
 
 const router = express.Router();
@@ -19,5 +20,6 @@ router.get('/:id', getClientById); // Obtener un cliente por ID
 router.post('/', createClient); // Crear un cliente
 router.put('/:id', updateClient); // Actualizar un cliente
 router.delete('/:id', deleteClient); // Eliminar un cliente
+router.get('/user/:idUser', getClientByUserId); // Obtener cliente por ID de usuario
 
 export default router;
