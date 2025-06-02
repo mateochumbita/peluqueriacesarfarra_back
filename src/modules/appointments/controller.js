@@ -92,6 +92,7 @@ export const createAppointment = async (req, res) => {
 
 export const getAllAppointments = async (req, res) => {
   try {
+    // 1. Traer datos de Sequelize
     const appointments = await models.Appointments.findAll({
       include: [
         {
@@ -115,7 +116,6 @@ export const getAllAppointments = async (req, res) => {
 
     const localResults = appointments.map((appt) => {
       const originalData = appt.toJSON();
-
       return {
         ...originalData,
         desc: {
@@ -127,7 +127,8 @@ export const getAllAppointments = async (req, res) => {
       };
     });
 
-    const { data: supabaseResults, error } = await supabase
+    // 2. Traer datos crudos de Supabase
+    const { data: supabaseResultsRaw, error } = await supabase
       .from("Appointments")
       .select("*");
 
@@ -135,7 +136,60 @@ export const getAllAppointments = async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
 
-    return res.status(200).json({ localResults, supabaseResults });
+    // 3. Enriquecer los datos de Supabase con los datos de Sequelize
+    const enrichedSupabaseResults = await Promise.all(
+      supabaseResultsRaw.map(async (appt) => {
+        const hairdresserService = await Hairdressers_Services.findOne({
+          where: { Id: appt.IdHairdresser_Service },
+          include: [
+            {
+              model: Hairdressers,
+              as: "Hairdresser",
+              attributes: ["Nombre"],
+            },
+            {
+              model: Services,
+              as: "Service",
+              attributes: ["Nombre", "Descripcion"],
+            },
+          ],
+        });
+
+        return {
+          ...appt,
+          HairdresserService: hairdresserService
+            ? {
+                Id: hairdresserService.Id,
+                IdHairdresser: hairdresserService.IdHairdresser,
+                IdService: hairdresserService.IdService,
+                Hairdresser: hairdresserService.Hairdresser
+                  ? { Nombre: hairdresserService.Hairdresser.Nombre }
+                  : null,
+                Service: hairdresserService.Service
+                  ? {
+                      Nombre: hairdresserService.Service.Nombre,
+                      Descripcion: hairdresserService.Service.Descripcion,
+                    }
+                  : null,
+              }
+            : null,
+          desc: hairdresserService
+            ? {
+                Peluquero: hairdresserService.Hairdresser?.Nombre || null,
+                Servicio: hairdresserService.Service?.Nombre || null,
+                DescripcionServicio:
+                  hairdresserService.Service?.Descripcion || null,
+              }
+            : null,
+        };
+      })
+    );
+
+    // 4. Enviar ambas respuestas en el mismo formato
+    return res.status(200).json({
+      localResults,
+      supabaseResults: enrichedSupabaseResults,
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
