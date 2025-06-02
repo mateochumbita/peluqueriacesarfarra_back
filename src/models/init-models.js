@@ -41,6 +41,16 @@ function initModels(sequelize) {
     otherKey: "IdHairdresser",
   });
 
+ 
+  Hairdressers_Services.belongsTo(Hairdressers, {
+    as: "Hairdresser",
+    foreignKey: "IdHairdresser",
+  });
+  Hairdressers_Services.belongsTo(Services, {
+    as: "Service",
+    foreignKey: "IdService",
+  });
+
   // Relación 1:1 entre Users y Hairdressers
   Hairdressers.belongsTo(Users, { as: "User", foreignKey: "IdUser" });
   Users.hasOne(Hairdressers, { as: "Hairdresser", foreignKey: "IdUser" });
