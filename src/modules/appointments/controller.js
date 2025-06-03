@@ -126,6 +126,10 @@ export const getAllAppointments = async (req, res) => {
           attributes: ["Nombre"],
         },
       ],
+      order: [
+        ['Fecha', 'DESC'],
+        ['Hora', 'DESC'],
+      ],
     });
 
     const localResults = appointments.map((appt) => {
@@ -137,7 +141,6 @@ export const getAllAppointments = async (req, res) => {
           Servicio: appt.HairdresserService?.Service?.Nombre || null,
           DescripcionServicio:
             appt.HairdresserService?.Service?.Descripcion || null,
-         
         },
       };
     });
@@ -150,8 +153,15 @@ export const getAllAppointments = async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
 
+    // Ordenamos los resultados de Supabase en el mismo orden (más reciente a más antiguo)
+    const sortedSupabase = supabaseResultsRaw.sort((a, b) => {
+      const dateA = new Date(`${a.Fecha}T${a.Hora}`);
+      const dateB = new Date(`${b.Fecha}T${b.Hora}`);
+      return dateB - dateA; // descendente
+    });
+
     const enrichedSupabaseResults = await Promise.all(
-      supabaseResultsRaw.map(async (appt) => {
+      sortedSupabase.map(async (appt) => {
         const hairdresserService = await Hairdressers_Services.findOne({
           where: { Id: appt.IdHairdresser_Service },
           include: [
@@ -478,3 +488,4 @@ export const getAppointmentsStats = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+ 
