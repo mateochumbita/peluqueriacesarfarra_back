@@ -28,45 +28,33 @@ export const searchEarnings = search(Earnings, supabaseTable);
 // Estadísticas de ingresos
 export const getEarningsStats = async (req, res) => {
   try {
-    const hoy = new Date();
-    const hoyStr = hoy.toISOString().slice(0, 10);
+    const today = new Date();
+    const formatDate = (date) => date.toISOString().slice(0, 10);
+    const getDow = (date) => (date.getDay() === 0 ? 6 : date.getDay() - 1); // lunes = 0
 
-    // Semana actual (lunes a domingo)
-    const diaSemana = hoy.getDay() === 0 ? 6 : hoy.getDay() - 1;
-    const inicioSemana = new Date(hoy);
-    inicioSemana.setDate(hoy.getDate() - diaSemana);
-    const finSemana = new Date(inicioSemana);
-    finSemana.setDate(inicioSemana.getDate() + 6);
+    // Fechas clave
+    const weekDay = getDow(today);
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - weekDay);
+    const saturday = new Date(monday);
+    saturday.setDate(monday.getDate() + 5);
 
-    // Mes actual
-    const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-    const finMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+    const lastMonday = new Date(monday);
+    lastMonday.setDate(monday.getDate() - 7);
+    const lastSaturday = new Date(lastMonday);
+    lastSaturday.setDate(lastMonday.getDate() + 5);
 
-    // Periodos anteriores
-    const inicioSemanaAnterior = new Date(inicioSemana);
-    inicioSemanaAnterior.setDate(inicioSemana.getDate() - 7);
-    const finSemanaAnterior = new Date(inicioSemanaAnterior);
-    finSemanaAnterior.setDate(inicioSemanaAnterior.getDate() + 6);
-
-    const inicioMesAnterior = new Date(
-      hoy.getFullYear(),
-      hoy.getMonth() - 1,
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const startOfLastMonth = new Date(
+      today.getFullYear(),
+      today.getMonth() - 1,
       1
     );
-    const finMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+    const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
 
-    const toDateStr = (d) => d.toISOString().slice(0, 10);
-
-    // Helper para variación porcentual
-    const variacion = (actual, anterior) =>
-      anterior === 0
-        ? actual > 0
-          ? 100.0
-          : 0.0
-        : parseFloat((((actual - anterior) / anterior) * 100).toFixed(1));
-
-    // Helper para sumar ingresos en un rango de fechas
-    const sumarIngresos = async (desde, hasta) => {
+    // Función para sumar ingresos en un rango de fechas
+    const sumarIngresos = async (from, to) => {
       const result = await Earnings.findAll({
         include: [
           {
@@ -74,7 +62,7 @@ export const getEarningsStats = async (req, res) => {
             as: "Appointment",
             attributes: [],
             where: {
-              Fecha: { [Op.between]: [toDateStr(desde), toDateStr(hasta)] },
+              Fecha: { [Op.between]: [formatDate(from), formatDate(to)] },
             },
           },
         ],
@@ -86,55 +74,51 @@ export const getEarningsStats = async (req, res) => {
       return parseFloat(result[0].total) || 0;
     };
 
-    // Hoy
-    const ingresosHoy = await sumarIngresos(hoy, hoy);
+    // Variación en porcentaje
+    const variacion = (actual, anterior) => {
+      if (anterior === 0) return actual > 0 ? 100 : 0;
+      return parseFloat((((actual - anterior) / anterior) * 100).toFixed(1));
+    };
 
-    // Semana actual
-    const ingresosSemana = await sumarIngresos(inicioSemana, finSemana);
+    // --- Cálculos principales ---
+    const [
+      ingresosHoy,
+      ingresosSemana,
+      ingresosSemanaAnterior,
+      ingresosMes,
+      ingresosMesAnterior,
+    ] = await Promise.all([
+      sumarIngresos(today, today),
+      sumarIngresos(monday, saturday),
+      sumarIngresos(lastMonday, lastSaturday),
+      sumarIngresos(startOfMonth, endOfMonth),
+      sumarIngresos(startOfLastMonth, endOfLastMonth),
+    ]);
 
-    // Mes actual
-    const ingresosMes = await sumarIngresos(inicioMes, finMes);
+    const diasMes = endOfMonth.getDate();
+    const diasMesAnterior = endOfLastMonth.getDate();
+    const diaActual = today.getDate();
 
-    // Semana anterior
-    const ingresosSemanaAnterior = await sumarIngresos(
-      inicioSemanaAnterior,
-      finSemanaAnterior
-    );
-
-    // Mes anterior
-    const ingresosMesAnterior = await sumarIngresos(
-      inicioMesAnterior,
-      finMesAnterior
-    );
-
-    // --- Promedio diario ---
-    const diasMes = finMes.getDate();
     const promedioDiario = ingresosMes / diasMes;
-
-    const diasMesAnterior = finMesAnterior.getDate();
     const promedioDiarioAnterior = ingresosMesAnterior / diasMesAnterior;
-
-    // --- Proyección mensual ---
-    const diaActual = hoy.getDate();
     const proyeccionMes = (ingresosMes / diaActual) * diasMes;
     const proyeccionMesAnterior =
-      (ingresosMesAnterior / (hoy.getMonth() === 0 ? 31 : diaActual)) *
-      diasMesAnterior;
+      (ingresosMesAnterior / diaActual) * diasMesAnterior;
 
-    // --- Tendencia últimos 6 meses ---
+    // Tendencia últimos 6 meses
     const tendencia = [];
     for (let i = 5; i >= 0; i--) {
-      const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+      const fecha = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const inicio = new Date(fecha.getFullYear(), fecha.getMonth(), 1);
       const fin = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0);
       const total = await sumarIngresos(inicio, fin);
       tendencia.push({
-        mes: `${inicio.getFullYear()}-${(inicio.getMonth() + 1).toString().padStart(2, "0")}`,
+        mes: `${inicio.getFullYear()}-${String(inicio.getMonth() + 1).padStart(2, "0")}`,
         total,
       });
     }
 
-    // --- Ingresos por día de martes a sábado (gráfico de barras) ---
+    // Ingresos por día (lunes a sábado de esta semana)
     const dias = [
       "Domingo",
       "Lunes",
@@ -144,8 +128,8 @@ export const getEarningsStats = async (req, res) => {
       "Viernes",
       "Sábado",
     ];
-
     const ingresosPorDia = [];
+
     for (let i = 1; i <= 6; i++) {
       const result = await Earnings.findAll({
         include: [
@@ -153,13 +137,16 @@ export const getEarningsStats = async (req, res) => {
             model: models.Appointments,
             as: "Appointment",
             attributes: [],
-            where: sequelizeDB.where(
-              sequelizeDB.fn(
-                "EXTRACT",
-                sequelizeDB.literal('"DOW" FROM "Fecha"')
+            where: {
+              Fecha: { [Op.between]: [formatDate(monday), formatDate(saturday)] },
+              [Op.and]: sequelizeDB.where(
+                sequelizeDB.fn(
+                  "EXTRACT",
+                  sequelizeDB.literal('"DOW" FROM "Fecha"')
+                ),
+                i
               ),
-              i
-            ),
+            },
           },
         ],
         attributes: [
@@ -167,18 +154,20 @@ export const getEarningsStats = async (req, res) => {
         ],
         raw: true,
       });
+
       ingresosPorDia.push({
         dia: dias[i],
         total: parseFloat(result[0].total) || 0,
       });
     }
 
+    // --- Respuesta ---
     res.json({
       ingresos: {
         hoy: ingresosHoy,
         semana: ingresosSemana,
-        mes: ingresosMes,
         semanaAnterior: ingresosSemanaAnterior,
+        mes: ingresosMes,
         mesAnterior: ingresosMesAnterior,
         variacionSemana: variacion(ingresosSemana, ingresosSemanaAnterior),
         variacionMes: variacion(ingresosMes, ingresosMesAnterior),
