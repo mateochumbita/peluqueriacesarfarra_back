@@ -440,6 +440,24 @@ export const getAppointmentsStats = async (req, res) => {
       tasaOcupacionMesAnterior.toFixed(1)
     );
 
+
+
+     // --- Turnos por día (lunes a sábado de la semana actual) ---
+    const nombresDias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const turnosPorDia = [];
+
+    for (let i = 0; i < 6; i++) { // de lunes a sábado
+      const fechaDia = new Date(inicioSemana);
+      fechaDia.setDate(inicioSemana.getDate() + i);
+      const fechaStr = toDateStr(fechaDia);
+
+      const cantidad = await Appointments.count({
+        where: { Fecha: fechaStr }
+      });
+
+      turnosPorDia.push({ dia: nombresDias[i], cantidad });
+    }
+
     // Helper para calcular variación porcentual con 1 decimal
     const variacion = (actual, anterior) =>
       anterior === 0
@@ -482,6 +500,7 @@ export const getAppointmentsStats = async (req, res) => {
         ),
         variacionMes: variacion(cancelacionesMes, cancelacionesMesAnterior),
       },
+      turnosPorDia
     });
   } catch (error) {
     console.error("Error en getAppointmentsStats:", error);
