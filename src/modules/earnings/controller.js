@@ -104,8 +104,21 @@ export const getEarningsStats = async (req, res) => {
     const proyeccionMes = (ingresosMes / diaActual) * diasMes;
     const proyeccionMesAnterior =
       (ingresosMesAnterior / diaActual) * diasMesAnterior;
+    const meses = [
+      "Enero",
+      "Febrero",
+      "Marzo",
+      "Abril",
+      "Mayo",
+      "Junio",
+      "Julio",
+      "Agosto",
+      "Septiembre",
+      "Octubre",
+      "Noviembre",
+      "Diciembre",
+    ];
 
-    // Tendencia últimos 6 meses
     const tendencia = [];
     for (let i = 5; i >= 0; i--) {
       const fecha = new Date(today.getFullYear(), today.getMonth() - i, 1);
@@ -113,7 +126,7 @@ export const getEarningsStats = async (req, res) => {
       const fin = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0);
       const total = await sumarIngresos(inicio, fin);
       tendencia.push({
-        mes: `${inicio.getFullYear()}-${String(inicio.getMonth() + 1).padStart(2, "0")}`,
+        mes: `${meses[inicio.getMonth()]} ${inicio.getFullYear()}`,
         total,
       });
     }
@@ -138,7 +151,9 @@ export const getEarningsStats = async (req, res) => {
             as: "Appointment",
             attributes: [],
             where: {
-              Fecha: { [Op.between]: [formatDate(monday), formatDate(saturday)] },
+              Fecha: {
+                [Op.between]: [formatDate(monday), formatDate(saturday)],
+              },
               [Op.and]: sequelizeDB.where(
                 sequelizeDB.fn(
                   "EXTRACT",
