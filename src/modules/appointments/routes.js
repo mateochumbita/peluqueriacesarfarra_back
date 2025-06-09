@@ -2,6 +2,7 @@ import express from 'express';
 import { 
     createAppointment, 
     getAllAppointments, 
+    getAllAppointmentsDay,
     getAppointmentById, 
     updateAppointment, 
     deleteAppointment, 
@@ -15,6 +16,7 @@ const router = express.Router();
 router.post('/', createAppointment); // Crear una cita
 router.get('/stats', getAppointmentsStats); // Obtener estadísticas de citas
 router.get('/', getAllAppointments); // Obtener todas las citas
+router.get('/day', getAllAppointmentsDay); // Obtener citas de un día específico
 router.get('/search', searchAppointments); // Buscar citas con filtros
 router.get('/:id', getAppointmentById); // Obtener una cita por ID
 router.put('/:id', updateAppointment); // Actualizar una cita
