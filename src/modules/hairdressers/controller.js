@@ -100,3 +100,24 @@ export const createHairdresserWithUser = async (req, res) => {
     return res.status(500).json({ ok: false, msg: "Error en el servidor" });
   }
 };
+
+
+
+export const getHairdreserByUserId = async (req, res) => {
+  const { idUser } = req.params;
+
+  try {
+    const hairdresser = await Hairdressers.findOne({
+      where: { IdUser: idUser }
+    });
+
+    if (!hairdresser) {
+      return res.status(404).json({ message: 'Cliente no encontrado para el IdUser proporcionado' });
+    }
+
+    res.json(hairdresser);
+  } catch (error) {
+    console.error('Error en getHairdreserByUserId:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
