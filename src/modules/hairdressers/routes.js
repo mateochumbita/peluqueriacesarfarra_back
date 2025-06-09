@@ -15,7 +15,7 @@ const router = express.Router();
 router.post('/', createHairdresserWithUser); // Crear un peluquero
 router.get('/', getAllHairdressers); // Obtener todos los peluqueros
 router.get('/search', searchHairdressers); // Buscar peluqueros con filtros
-router.get('/:idUser', getHairdreserByUserId); // Obtener peluquero por ID de usuario
+router.get('/user/:idUser', getHairdreserByUserId); // Obtener peluquero por ID de usuario
 router.get('/:id', getHairdresserById); // Obtener un peluquero por ID
 router.put('/:id', updateHairdresser); // Actualizar un peluquero
 router.delete('/:id', deleteHairdresser); // Eliminar un peluquero
