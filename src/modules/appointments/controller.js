@@ -7,7 +7,8 @@ import {
 } from "../../service/genericService.js";
 import initModels from "../../models/init-models.js";
 import { sequelizeDB } from "../../database/connection.database.js";
-import { Op } from "sequelize";
+
+import { Op, fn, col, where } from "sequelize";
 import { sendAppointmentConfirmation } from "../../middlewares/sendAppointmentConfirmation.js";
 import { sendAppointmentPaymentConfirmation } from "../../middlewares/sendAppointmentPaymentConfirmation.js";
 import { supabase } from "../../database/supabase.js";
@@ -295,14 +296,12 @@ export const getAppointmentsStats = async (req, res) => {
     const hoy = DateTime.now().setZone(zone);
 
     // Fechas clave
-    const hoyStr = hoy.toISODate();
-    const inicioHoy = hoy.startOf("day").toJSDate();
-    const finHoy = hoy.endOf("day").toJSDate();
+    const inicioHoy = hoy.startOf("day");
+    const finHoy = hoy.endOf("day");
 
-    // Semana actual (lunes a domingo)
-    // Obtener lunes de la semana actual
+    // Semana actual (lunes a sábado)
     const inicioSemana = hoy.minus({ days: hoy.weekday - 1 }).startOf("day");
-    const finSemana = inicioSemana.plus({ days: 5 }).endOf("day"); // hasta sábado
+    const finSemana = inicioSemana.plus({ days: 5 }).endOf("day");
 
     // Semana anterior
     const inicioSemanaAnterior = inicioSemana.minus({ weeks: 1 });
@@ -320,18 +319,26 @@ export const getAppointmentsStats = async (req, res) => {
 
     const redondear = (valor) => parseFloat(valor.toFixed(1));
 
-    // Helper para contar
+    // Helper usando TIMESTAMP(Fecha, Hora)
     const contar = async (inicio, fin, estado = null) => {
-      const where = {
-        Fecha: {
-          [Op.between]: [inicio.toJSDate(), fin.toJSDate()],
-        },
+      const whereCond = {
+        [Op.and]: [
+          where(
+            fn(
+              "TO_TIMESTAMP",
+              fn("CONCAT", col("Fecha"), " ", col("Hora")),
+              "YYYY-MM-DD HH24:MI:SS"
+            ),
+            {
+              [Op.between]: [inicio.toISO(), fin.toISO()],
+            }
+          ),
+        ],
       };
-      if (estado) where.Estado = estado;
-      return await Appointments.count({ where });
+      if (estado) whereCond.Estado = estado;
+      return await Appointments.count({ where: whereCond });
     };
 
-    // Datos
     const [
       turnosHoy,
       turnosSemana,
@@ -344,30 +351,28 @@ export const getAppointmentsStats = async (req, res) => {
       cancelacionesSemanaAnterior,
       cancelacionesMesAnterior,
     ] = await Promise.all([
-      contar(hoy.startOf("day"), hoy.endOf("day")),
+      contar(inicioHoy, finHoy),
       contar(inicioSemana, finSemana),
       contar(inicioMes, finMes),
       contar(inicioSemanaAnterior, finSemanaAnterior),
       contar(inicioMesAnterior, finMesAnterior),
-      contar(hoy.startOf("day"), hoy.endOf("day"), "Cancelado"),
+      contar(inicioHoy, finHoy, "Cancelado"),
       contar(inicioSemana, finSemana, "Cancelado"),
       contar(inicioMes, finMes, "Cancelado"),
       contar(inicioSemanaAnterior, finSemanaAnterior, "Cancelado"),
       contar(inicioMesAnterior, finMesAnterior, "Cancelado"),
     ]);
 
-    // Tasas
     const tasaOcupacionHoy = (turnosHoy / capacidadMaximaDia) * 100;
-    const tasaOcupacionSemana = (turnosSemana / (7 * capacidadMaximaDia)) * 100;
+    const tasaOcupacionSemana = (turnosSemana / (6 * capacidadMaximaDia)) * 100; // lunes a sábado
     const tasaOcupacionSemanaAnterior =
-      (turnosSemanaAnterior / (7 * capacidadMaximaDia)) * 100;
+      (turnosSemanaAnterior / (6 * capacidadMaximaDia)) * 100;
     const diasMes = finMes.day;
     const diasMesAnterior = finMesAnterior.day;
     const tasaOcupacionMes = (turnosMes / (diasMes * capacidadMaximaDia)) * 100;
     const tasaOcupacionMesAnterior =
       (turnosMesAnterior / (diasMesAnterior * capacidadMaximaDia)) * 100;
 
-    // Turnos por día (lunes a sábado)
     const nombresDias = [
       "Lunes",
       "Martes",
@@ -384,7 +389,6 @@ export const getAppointmentsStats = async (req, res) => {
       turnosPorDia.push({ dia: nombresDias[i], cantidad });
     }
 
-    // Variación porcentual
     const variacion = (actual, anterior) =>
       anterior === 0
         ? actual > 0
