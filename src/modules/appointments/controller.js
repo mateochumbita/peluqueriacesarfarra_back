@@ -11,7 +11,7 @@ import { Op } from "sequelize";
 import { sendAppointmentConfirmation } from "../../middlewares/sendAppointmentConfirmation.js";
 import { sendAppointmentPaymentConfirmation } from "../../middlewares/sendAppointmentPaymentConfirmation.js";
 import { supabase } from "../../database/supabase.js";
-
+import { DateTime } from "luxon";
 const models = initModels(sequelizeDB);
 const Appointments = models.Appointments;
 const Earnings = models.Earnings;
@@ -291,172 +291,82 @@ export const searchAppointments = search(Appointments, supabaseTable);
 export const getAppointmentsStats = async (req, res) => {
   try {
     const capacidadMaximaDia = 30;
+    const zone = "America/Argentina/Buenos_Aires";
+    const hoy = DateTime.now().setZone(zone);
 
-    // Fechas útiles
-    const hoy = new Date();
-    const hoyStr = hoy.toISOString().slice(0, 10);
+    // Fechas clave
+    const hoyStr = hoy.toISODate();
+    const inicioHoy = hoy.startOf("day").toJSDate();
+    const finHoy = hoy.endOf("day").toJSDate();
 
     // Semana actual (lunes a domingo)
-    const diaSemana = hoy.getDay() === 0 ? 6 : hoy.getDay() - 1;
-    const inicioSemana = new Date(hoy);
-    inicioSemana.setDate(hoy.getDate() - diaSemana);
-    const finSemana = new Date(inicioSemana);
-    finSemana.setDate(inicioSemana.getDate() + 6);
+    // Obtener lunes de la semana actual
+    const inicioSemana = hoy.minus({ days: hoy.weekday - 1 }).startOf("day");
+    const finSemana = inicioSemana.plus({ days: 5 }).endOf("day"); // hasta sábado
+
+    // Semana anterior
+    const inicioSemanaAnterior = inicioSemana.minus({ weeks: 1 });
+    const finSemanaAnterior = inicioSemanaAnterior
+      .plus({ days: 6 })
+      .endOf("day");
 
     // Mes actual
-    const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-    const finMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+    const inicioMes = hoy.startOf("month");
+    const finMes = hoy.endOf("month");
 
-    // Periodos anteriores
-    const inicioSemanaAnterior = new Date(inicioSemana);
-    inicioSemanaAnterior.setDate(inicioSemana.getDate() - 7);
-    const finSemanaAnterior = new Date(inicioSemanaAnterior);
-    finSemanaAnterior.setDate(inicioSemanaAnterior.getDate() + 6);
+    // Mes anterior
+    const inicioMesAnterior = hoy.minus({ months: 1 }).startOf("month");
+    const finMesAnterior = hoy.minus({ months: 1 }).endOf("month");
 
-    const inicioMesAnterior = new Date(
-      hoy.getFullYear(),
-      hoy.getMonth() - 1,
-      1
-    );
-    const finMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+    const redondear = (valor) => parseFloat(valor.toFixed(1));
 
-    // Helper para formato YYYY-MM-DD
-    const toDateStr = (d) => d.toISOString().slice(0, 10);
-
-    // Hoy
-    const inicioHoy = new Date();
-    inicioHoy.setHours(0, 0, 0, 0);
-
-    const finHoy = new Date();
-    finHoy.setHours(23, 59, 59, 999);
-
-    const turnosHoy = await Appointments.count({
-      where: {
+    // Helper para contar
+    const contar = async (inicio, fin, estado = null) => {
+      const where = {
         Fecha: {
-          [Op.between]: [inicioHoy, finHoy],
+          [Op.between]: [inicio.toJSDate(), fin.toJSDate()],
         },
-      },
-    });
+      };
+      if (estado) where.Estado = estado;
+      return await Appointments.count({ where });
+    };
 
-    const inicioSemanaCompleto = new Date(inicioSemana);
-    inicioSemanaCompleto.setHours(0, 0, 0, 0);
+    // Datos
+    const [
+      turnosHoy,
+      turnosSemana,
+      turnosMes,
+      turnosSemanaAnterior,
+      turnosMesAnterior,
+      cancelacionesHoy,
+      cancelacionesSemana,
+      cancelacionesMes,
+      cancelacionesSemanaAnterior,
+      cancelacionesMesAnterior,
+    ] = await Promise.all([
+      contar(hoy.startOf("day"), hoy.endOf("day")),
+      contar(inicioSemana, finSemana),
+      contar(inicioMes, finMes),
+      contar(inicioSemanaAnterior, finSemanaAnterior),
+      contar(inicioMesAnterior, finMesAnterior),
+      contar(hoy.startOf("day"), hoy.endOf("day"), "Cancelado"),
+      contar(inicioSemana, finSemana, "Cancelado"),
+      contar(inicioMes, finMes, "Cancelado"),
+      contar(inicioSemanaAnterior, finSemanaAnterior, "Cancelado"),
+      contar(inicioMesAnterior, finMesAnterior, "Cancelado"),
+    ]);
 
-    const finSemanaCompleto = new Date(finSemana);
-    finSemanaCompleto.setHours(23, 59, 59, 999);
-
-    const turnosSemana = await Appointments.count({
-      where: {
-        Fecha: {
-          [Op.between]: [inicioSemanaCompleto, finSemanaCompleto],
-        },
-      },
-    });
-
-    const turnosMes = await Appointments.count({
-      where: {
-        Fecha: {
-          [Op.between]: [toDateStr(inicioMes), toDateStr(finMes)],
-        },
-      },
-    });
-
-    const turnosSemanaAnterior = await Appointments.count({
-      where: {
-        Fecha: {
-          [Op.between]: [
-            toDateStr(inicioSemanaAnterior),
-            toDateStr(finSemanaAnterior),
-          ],
-        },
-      },
-    });
-
-    const turnosMesAnterior = await Appointments.count({
-      where: {
-        Fecha: {
-          [Op.between]: [
-            toDateStr(inicioMesAnterior),
-            toDateStr(finMesAnterior),
-          ],
-        },
-      },
-    });
-
-    // Cancelaciones
-    const cancelacionesHoy = await Appointments.count({
-      where: {
-        Fecha: {
-          [Op.between]: [inicioHoy, finHoy],
-        },
-        Estado: "Cancelado",
-      },
-    });
-
-    const cancelacionesSemana = await Appointments.count({
-      where: {
-        Fecha: {
-          [Op.between]: [toDateStr(inicioSemana), toDateStr(finSemana)],
-        },
-        Estado: "Cancelado",
-      },
-    });
-
-    const cancelacionesMes = await Appointments.count({
-      where: {
-        Fecha: {
-          [Op.between]: [toDateStr(inicioMes), toDateStr(finMes)],
-        },
-        Estado: "Cancelado",
-      },
-    });
-
-    const cancelacionesSemanaAnterior = await Appointments.count({
-      where: {
-        Fecha: {
-          [Op.between]: [
-            toDateStr(inicioSemanaAnterior),
-            toDateStr(finSemanaAnterior),
-          ],
-        },
-        Estado: "Cancelado",
-      },
-    });
-
-    const cancelacionesMesAnterior = await Appointments.count({
-      where: {
-        Fecha: {
-          [Op.between]: [
-            toDateStr(inicioMesAnterior),
-            toDateStr(finMesAnterior),
-          ],
-        },
-        Estado: "Cancelado",
-      },
-    });
-
-    // Tasa de ocupación
-    const diasMes = finMes.getDate();
-    const diasMesAnterior = finMesAnterior.getDate();
-
+    // Tasas
     const tasaOcupacionHoy = (turnosHoy / capacidadMaximaDia) * 100;
     const tasaOcupacionSemana = (turnosSemana / (7 * capacidadMaximaDia)) * 100;
     const tasaOcupacionSemanaAnterior =
       (turnosSemanaAnterior / (7 * capacidadMaximaDia)) * 100;
+    const diasMes = finMes.day;
+    const diasMesAnterior = finMesAnterior.day;
     const tasaOcupacionMes = (turnosMes / (diasMes * capacidadMaximaDia)) * 100;
     const tasaOcupacionMesAnterior =
       (turnosMesAnterior / (diasMesAnterior * capacidadMaximaDia)) * 100;
 
-    // Redondear tasas
-    const redondear = (valor) => parseFloat(valor.toFixed(1));
-    const tasaOcupacionHoyRed = redondear(tasaOcupacionHoy);
-    const tasaOcupacionSemanaRed = redondear(tasaOcupacionSemana);
-    const tasaOcupacionSemanaAnteriorRed = redondear(
-      tasaOcupacionSemanaAnterior
-    );
-    const tasaOcupacionMesRed = redondear(tasaOcupacionMes);
-    const tasaOcupacionMesAnteriorRed = redondear(tasaOcupacionMesAnterior);
-
-    // Turnos por día (lunes a sábado)
     // Turnos por día (lunes a sábado)
     const nombresDias = [
       "Lunes",
@@ -469,24 +379,8 @@ export const getAppointmentsStats = async (req, res) => {
     const turnosPorDia = [];
 
     for (let i = 0; i < 6; i++) {
-      const fechaDia = new Date(inicioSemana);
-      fechaDia.setDate(inicioSemana.getDate() + i);
-
-      // inicio y fin del día
-      const inicioDia = new Date(fechaDia);
-      inicioDia.setHours(0, 0, 0, 0);
-
-      const finDia = new Date(fechaDia);
-      finDia.setHours(23, 59, 59, 999);
-
-      const cantidad = await Appointments.count({
-        where: {
-          Fecha: {
-            [Op.between]: [inicioDia, finDia],
-          },
-        },
-      });
-
+      const dia = inicioSemana.plus({ days: i });
+      const cantidad = await contar(dia.startOf("day"), dia.endOf("day"));
       turnosPorDia.push({ dia: nombresDias[i], cantidad });
     }
 
@@ -509,11 +403,11 @@ export const getAppointmentsStats = async (req, res) => {
         variacionMes: variacion(turnosMes, turnosMesAnterior),
       },
       tasaOcupacion: {
-        hoy: tasaOcupacionHoyRed,
-        semana: tasaOcupacionSemanaRed,
-        mes: tasaOcupacionMesRed,
-        semanaAnterior: tasaOcupacionSemanaAnteriorRed,
-        mesAnterior: tasaOcupacionMesAnteriorRed,
+        hoy: redondear(tasaOcupacionHoy),
+        semana: redondear(tasaOcupacionSemana),
+        mes: redondear(tasaOcupacionMes),
+        semanaAnterior: redondear(tasaOcupacionSemanaAnterior),
+        mesAnterior: redondear(tasaOcupacionMesAnterior),
         variacionSemana: variacion(
           tasaOcupacionSemana,
           tasaOcupacionSemanaAnterior
