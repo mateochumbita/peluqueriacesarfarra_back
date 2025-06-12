@@ -441,9 +441,12 @@ export const getAllAppointmentsDay = async (req, res) => {
   try {
     const hoy = new Date().toISOString().slice(0, 10); // formato YYYY-MM-DD
 
-    // === BASE DE DATOS LOCAL (MySQL con Sequelize) ===
+    // === BASE LOCAL ===
     const appointments = await models.Appointments.findAll({
-      where: { Fecha: hoy },
+      where: {
+        Fecha: hoy,
+        Estado: "Reservado",
+      },
       include: [
         {
           model: models.Hairdressers_Services,
@@ -490,7 +493,8 @@ export const getAllAppointmentsDay = async (req, res) => {
     const { data: supabaseResultsRaw, error } = await supabase
       .from("Appointments")
       .select("*")
-      .eq("Fecha", hoy); // solo turnos de hoy
+      .eq("Fecha", hoy)
+      .eq("Estado", "Reservado"); // solo turnos de hoy y con estado Reservado
 
     if (error) {
       return res.status(500).json({ error: error.message });
