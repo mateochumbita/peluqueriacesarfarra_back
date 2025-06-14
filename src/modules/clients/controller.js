@@ -2,6 +2,7 @@ import { create, findAll, findOne, update, remove, search } from '../../service/
 import initModels from '../../models/init-models.js';
 import { sequelizeDB } from '../../database/connection.database.js';
 import { Op } from 'sequelize';
+import { supabase } from "../../database/supabase.js";
 
 // Inicializar modelos
 const models = initModels(sequelizeDB);
@@ -15,20 +16,29 @@ const supabaseTable = 'Clients';
 export const createClient = create(Clients, supabaseTable);
 export const getAllClients = async (req, res) => {
   try {
-    const clients = await Clients.findAll({
+    // Clientes locales con User habilitado
+    const localResults = await Clients.findAll({
       include: [
         {
           model: Users,
-          as: 'User', // Según alias en initModels
+          as: 'User',
           where: { Habilitado: true },
-          attributes: [] // O podés especificar algunos campos si querés incluirlos
+          attributes: [] // No devolvemos los datos del usuario
         }
       ]
     });
 
-    res.json(clients);
+    // Clientes en Supabase
+    const { data, error } = await supabase.from(supabaseTable).select("*");
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    // Devolver estructura similar al genericService
+    res.status(200).json({ localResults, supabaseResults: data });
   } catch (error) {
-    console.error('Error al obtener clientes habilitados:', error);
+    console.error("Error en getAllClients:", error);
     res.status(500).json({ error: error.message });
   }
 };
