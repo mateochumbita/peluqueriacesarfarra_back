@@ -90,6 +90,10 @@ app.get("/", (req, res) => {
     </html>
   `);
 });
+app.get("/swagger.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
+});
 
 // Inicializar servidor
 const PORT = process.env.PORT || 3001;
