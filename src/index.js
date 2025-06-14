@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import { sequelizeDB } from "./database/connection.database.js";
 import router from "./modules/routes.js";
 import initModels from "./models/init-models.js";
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 dotenv.config();
 
 const app = express();
@@ -30,6 +32,32 @@ const models = initModels(sequelizeDB);
 
 // syncModels();
 
+
+const swaggerOptions = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "API Peluquería César Farra",
+      version: "1.0.0",
+      description: "Documentación de la API para la gestión de la peluquería",
+    },
+    servers: [
+      {
+        url: "http://localhost:3001/api/v1",
+        description: "Servidor local",
+      },
+      {
+        url: "https://peluqueriacesarfarra-back.vercel.app/api/v1",
+        description: "Servidor en producción",
+      },
+
+    ],
+  },
+ apis: ["./src/modules/**/*.js"], // Asegurate de comentar con Swagger tus rutas
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
 // Middlewares
 app.use(
   cors({
@@ -45,6 +73,10 @@ app.use(
 app.use(express.json()); // Middleware para procesar JSON
 app.use(express.urlencoded({ extended: true })); // Middleware para procesar datos de formularios
 app.use(cookieParser());
+
+
+// Swagger UI route
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Rutas
 app.use("/api/v1", router);
