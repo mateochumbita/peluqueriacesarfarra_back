@@ -125,7 +125,7 @@ export const register = async (req, res) => {
     });
   } catch (error) {
     console.error("Error en el registro:", error);
-    return res.status(500).json({ ok: false, msg: "Error en el servidor" });
+    return res.status(500).json({ ok: false, msg: "Error en el servidor", error });
   }
 };
 

@@ -6,13 +6,33 @@ import { Op } from 'sequelize';
 // Inicializar modelos
 const models = initModels(sequelizeDB);
 const Clients = models.Clients;
+const Users = models.Users;
 
 // Nombre de la tabla en Supabase
 const supabaseTable = 'Clients';
 
 // Controladores específicos para Clients
 export const createClient = create(Clients, supabaseTable);
-export const getAllClients = findAll(Clients, supabaseTable);
+export const getAllClients = async (req, res) => {
+  try {
+    const clients = await Clients.findAll({
+      include: [
+        {
+          model: Users,
+          as: 'User', // Según alias en initModels
+          where: { Habilitado: true },
+          attributes: [] // O podés especificar algunos campos si querés incluirlos
+        }
+      ]
+    });
+
+    res.json(clients);
+  } catch (error) {
+    console.error('Error al obtener clientes habilitados:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const getClientById = findOne(Clients);
 export const updateClient = update(Clients, supabaseTable);
 export const deleteClient = remove(Clients, supabaseTable);
