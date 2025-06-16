@@ -103,3 +103,6 @@ app.listen(PORT, () => {
   console.log("Supabase URL:", process.env.SUPABASE_URL);
   console.log("Supabase Key:", process.env.SUPABASE_KEY);
 });
+
+
+export default app;
