@@ -95,7 +95,7 @@ export const getAllDisabledClients = async (req, res) => {
       const user = await Users.findOne({
         where: {
           Id: client.IdUser,
-          Habilitado: true,
+          Habilitado: false,
         },
         attributes: ["Id"],
       });
