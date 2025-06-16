@@ -2,6 +2,7 @@ import express from 'express';
 import { 
   createClient, 
   getAllClients, 
+  getAllDisabledClients,
   getClientById, 
   updateClient, 
   deleteClient, 
@@ -42,6 +43,9 @@ router.get('/stats', getClientsStats);
  *         description: Lista de clientes
  */
 router.get('/', getAllClients);
+
+
+router.get('/disabled', getAllDisabledClients);
 
 /**
  * @swagger

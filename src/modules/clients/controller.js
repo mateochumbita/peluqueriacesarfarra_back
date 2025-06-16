@@ -66,6 +66,51 @@ export const getAllClients = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+export const getAllDisabledClients = async (req, res) => {
+  try {
+    // --- Local ---
+    const localResults = await Clients.findAll({
+      include: [
+        {
+          model: Users,
+          as: "User",
+          where: { Habilitado: false },
+          attributes: [], // No devolvemos los datos del user
+        },
+      ],
+    });
+
+    // --- Supabase: trae todos los clients ---
+    const { data, error } = await supabase.from(supabaseTable).select("*");
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    // ⚠️ Filtramos en memoria (porque no podemos hacer join en Supabase)
+    const supabaseResults = [];
+
+    for (const client of data) {
+      // Buscamos el usuario correspondiente desde la tabla Users en Sequelize
+      const user = await Users.findOne({
+        where: {
+          Id: client.IdUser,
+          Habilitado: true,
+        },
+        attributes: ["Id"],
+      });
+
+      if (user) {
+        supabaseResults.push(client);
+      }
+    }
+
+    res.status(200).json({ localResults, supabaseResults });
+  } catch (error) {
+    console.error("Error en getAllClients:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 export const getClientById = findOne(Clients);
 export const updateClient = update(Clients, supabaseTable);
