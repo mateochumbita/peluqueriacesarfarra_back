@@ -9,7 +9,7 @@ import {
 import initModels from "../../models/init-models.js";
 import { sequelizeDB } from "../../database/connection.database.js";
 import { supabase } from "../../database/supabase.js";
-// Inicializar modelos
+
 const models = initModels(sequelizeDB);
 const Hairdressers_Services = models.Hairdressers_Services;
 const Hairdressers = models.Hairdressers;

@@ -16,11 +16,13 @@ const models = initModels(sequelizeDB);
 const Clients = models.Clients;
 const Users = models.Users;
 
-// Nombre de la tabla en Supabase
+
 const supabaseTable = "Clients";
 
-// Controladores específicos para Clients
+// crear cliente
 export const createClient = create(Clients, supabaseTable);
+
+// obtener todos los clientes habilitados
 export const getAllClients = async (req, res) => {
   try {
     // --- Local ---
@@ -66,32 +68,34 @@ export const getAllClients = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// obtener todos los clientes deshabilitados
 export const getAllDisabledClients = async (req, res) => {
   try {
-    // --- Local ---
+   
     const localResults = await Clients.findAll({
       include: [
         {
           model: Users,
           as: "User",
           where: { Habilitado: false },
-          attributes: [], // No devolvemos los datos del user
+          attributes: [], 
         },
       ],
     });
 
-    // --- Supabase: trae todos los clients ---
+  //se traen todos los clientes de supabase
     const { data, error } = await supabase.from(supabaseTable).select("*");
 
     if (error) {
       return res.status(500).json({ error: error.message });
     }
 
-    // ⚠️ Filtramos en memoria (porque no podemos hacer join en Supabase)
+    
     const supabaseResults = [];
 
     for (const client of data) {
-      // Buscamos el usuario correspondiente desde la tabla Users en Sequelize
+      //se buscan los usuarios deshabilitados y se los inserta en supabaseResults
       const user = await Users.findOne({
         where: {
           Id: client.IdUser,
@@ -112,9 +116,14 @@ export const getAllDisabledClients = async (req, res) => {
   }
 };
 
+// obtener un cliente por su id
 export const getClientById = findOne(Clients);
+
+// actualizar un cliente
 export const updateClient = update(Clients, supabaseTable);
+// eliminar un cliente
 export const deleteClient = remove(Clients, supabaseTable);
+// buscar un cliente
 export const searchClients = search(Clients, supabaseTable);
 
 // Estadísticas de clientes
@@ -148,10 +157,10 @@ export const getClientsStats = async (req, res) => {
     );
     const finMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
 
-    // Helper para formato YYYY-MM-DD
+    // Funciones auxiliares
     const toDateStr = (d) => d.toISOString().slice(0, 10);
 
-    // --- Clientes creados ---
+  
     // Hoy
     const clientesHoy = await Clients.count({
       where: { FechaRegistro: { [Op.gte]: hoyStr } },
@@ -196,7 +205,7 @@ export const getClientsStats = async (req, res) => {
       },
     });
 
-    // --- Clientes recurrentes (más de un turno en el último mes) ---
+    // Clientes recurrentes (más de un turno en el último mes) 
     const Appointments = models.Appointments;
     const unMesAtras = new Date(hoy);
     unMesAtras.setMonth(hoy.getMonth() - 1);
@@ -248,7 +257,7 @@ export const getClientsStats = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
+//obtener client por idUser
 export const getClientByUserId = async (req, res) => {
   const { idUser } = req.params;
 

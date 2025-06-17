@@ -9,23 +9,29 @@ const models = initModels(sequelizeDB);
 const Users = models.Users;
 const Hairdressers = models.Hairdressers;
 
-// Nombre de la tabla en Supabase
+
 const supabaseTable = 'Hairdressers';
 
 const SECRET_KEY = process.env.JWT_SECRET;
 
-// Controladores específicos para Clients
+// crear peluquero/administrador
 export const createHairdressers = create(Hairdressers, supabaseTable);
+// obtener todos los peluqueros/administradores
 export const getAllHairdressers = findAll(Hairdressers, supabaseTable);
+// obtener un peluquero/administrador por id
 export const getHairdresserById = findOne(Hairdressers);
+// actualizar un peluquero
 export const updateHairdresser = update(Hairdressers, supabaseTable);
+// eliminar un peluquero
 export const deleteHairdresser = remove(Hairdressers, supabaseTable);
+// buscar un peluquero
 export const searchHairdressers = search(Hairdressers, supabaseTable);
 
 // Crear peluquero y usuario asociado
 export const createHairdresserWithUser = async (req, res) => {
   try {
     const {
+      //datos de usuario
       username,
       password,
       habilitado,
@@ -77,7 +83,7 @@ export const createHairdresserWithUser = async (req, res) => {
       IdUser: newUser.Id
     });
 
-    // Opcional: generar token
+    //  generar token
     let token = null;
     if (SECRET_KEY) {
       token = jwt.sign(
@@ -102,7 +108,7 @@ export const createHairdresserWithUser = async (req, res) => {
 };
 
 
-
+//obtener peluquero por idUser
 export const getHairdreserByUserId = async (req, res) => {
   const { idUser } = req.params;
 

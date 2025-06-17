@@ -15,15 +15,20 @@ const models = initModels(sequelizeDB);
 const Earnings = models.Earnings;
 const Appointments = models.Appointments;
 
-// Nombre de la tabla en Supabase
+
 const supabaseTable = "Earnings";
 
-// Controladores específicos para Earnings
+// crear ingreso
 export const createEarning = create(Earnings, supabaseTable);
+// obtener todos los ingresos
 export const getAllEarnings = findAll(Earnings, supabaseTable);
+// obtener un ingreso por id
 export const getEarningById = findOne(Earnings);
+// actualizar un ingreso
 export const updateEarning = update(Earnings, supabaseTable);
+// eliminar un ingreso
 export const deleteEarning = remove(Earnings, supabaseTable);
+// buscar un ingreso
 export const searchEarnings = search(Earnings, supabaseTable);
 
 // Estadísticas de ingresos
@@ -36,9 +41,9 @@ export const getEarningsStats = async (req, res) => {
     // Fechas clave
     const inicioHoy = hoy.startOf("day");
     const finHoy = hoy.endOf("day");
-
-    const inicioSemana = hoy.minus({ days: hoy.weekday - 1 }).startOf("day"); // lunes
-    const finSemana = inicioSemana.plus({ days: 5 }).endOf("day"); // sábado
+    //de lunes a sabados
+    const inicioSemana = hoy.minus({ days: hoy.weekday - 1 }).startOf("day"); 
+    const finSemana = inicioSemana.plus({ days: 5 }).endOf("day"); 
 
     const inicioSemanaAnterior = inicioSemana.minus({ weeks: 1 });
     const finSemanaAnterior = inicioSemanaAnterior

@@ -175,7 +175,7 @@ export const login = async (req, res) => {
         Id: user.Id,
         Username: user.Username,
         IdProfile: user.IdProfile,
-        Profile: user.Profile // contiene { Nombre: "admin" }
+        Profile: user.Profile 
       }
     });
   } catch (error) {

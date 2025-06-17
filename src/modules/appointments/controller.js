@@ -330,7 +330,7 @@ export const getAppointmentsStats = async (req, res) => {
 
     const redondear = (valor) => parseFloat(valor.toFixed(1));
 
-    // Helper usando TIMESTAMP(Fecha, Hora)
+    // Helper  TIMESTAMP(Fecha, Hora)
     const contar = async (inicio, fin, estado = null) => {
       const whereCond = {
         [Op.and]: [
@@ -448,9 +448,12 @@ export const getAppointmentsStats = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+//obtener los turnos del dia de la fecha
 export const getAllAppointmentsDay = async (req, res) => {
   try {
-    const hoy = new Date().toISOString().slice(0, 10); // formato YYYY-MM-DD
+    const hoy = new Date().toISOString().slice(0, 10); 
 
     // === BASE LOCAL ===
     const appointments = await models.Appointments.findAll({
@@ -500,13 +503,12 @@ export const getAllAppointmentsDay = async (req, res) => {
       };
     });
 
-    // === SUPABASE ===
+    
     const { data: supabaseResultsRaw, error } = await supabase
       .from("Appointments")
       .select("*")
       .eq("Fecha", hoy)
-      .eq("Estado", "Reservado"); // solo turnos de hoy y con estado Reservado
-
+      .eq("Estado", "Reservado"); 
     if (error) {
       return res.status(500).json({ error: error.message });
     }
