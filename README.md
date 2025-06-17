@@ -22,11 +22,10 @@ Frontend:https://peluqueriacesarfarra-front.vercel.app/
 
 ## 🚀 Funcionalidades principales
 
-- Registro e inicio de sesión con autenticación JWT.
-- Gestión de clientes, peluqueros y servicios.
-- Programación, modificación y cancelación de turnos.
+- Registro de Clientes e inicio de sesión con JWT.
+- Gestión de clientes, servicios, turnos e ingresos.
+- Programación, reprogramación y cancelación de turnos.
 - Control de acceso basado en roles.
-- Endpoints seguros y estructurados por entidad.
 
 ---
 
