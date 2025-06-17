@@ -15,14 +15,16 @@ const Hairdressers_Services = models.Hairdressers_Services;
 const Hairdressers = models.Hairdressers;
 const Services = models.Services;
 
-// Nombre de la tabla en Supabase
+
 const supabaseTable = "Hairdressers_Services";
 
-// Controladores específicos para Hairdressers_Services
+// crear HairdresserService
 export const createHairdresserService = create(
   Hairdressers_Services,
   supabaseTable
 );
+
+// obtener todos los HairdresserServices
 export const getAllHairdresserServices = async (req, res) => {
   try {
     // Obtener registros locales desde Sequelize
@@ -94,15 +96,20 @@ export const getAllHairdresserServices = async (req, res) => {
   }
 };
 
+
+// obtener HairdresserService por id
 export const getHairdresserServiceById = findOne(Hairdressers_Services);
+// actualizar HairdresserService
 export const updateHairdresserService = update(
   Hairdressers_Services,
   supabaseTable
 );
+// eliminar HairdresserService
 export const deleteHairdresserService = remove(
   Hairdressers_Services,
   supabaseTable
 );
+// buscar HairdresserService
 export const searchHairdresserServices = search(
   Hairdressers_Services,
   supabaseTable

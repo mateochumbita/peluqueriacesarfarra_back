@@ -17,7 +17,7 @@ const Clients = models.Clients;
 
 // Crear un registro en la base de datos local y Supabase
 export const create = (Model, supabaseTable) => async (req, res) => {
-  const requestId = Date.now(); // Identificador único para esta solicitud
+  const requestId = Date.now(); 
   console.log(`[${requestId}] [CREATE] Datos recibidos:`, req.body);
   try {
     // Crear registro en la base de datos local
@@ -52,7 +52,7 @@ export const create = (Model, supabaseTable) => async (req, res) => {
         .json({ localResult, supabaseResult: existingData });
     }
 
-    // Insertar en Supabase si no existe
+    // Insertar registro en supabase
     const { data, error } = await supabase
       .from(supabaseTable)
       .insert([localResult.toJSON()]);
@@ -78,7 +78,7 @@ export const create = (Model, supabaseTable) => async (req, res) => {
   }
 };
 
-// Obtener todos los registros
+// Obtener todos los registros de la tabla
 export const findAll = (Model, supabaseTable) => async (req, res) => {
   try {
     const localResults = await Model.findAll();
@@ -95,7 +95,7 @@ export const findAll = (Model, supabaseTable) => async (req, res) => {
   }
 };
 
-// Obtener un registro por ID
+// Obtener los registros por id
 export const findOne = (Model) => async (req, res) => {
   try {
     const instance = await Model.findByPk(req.params.id);
@@ -161,7 +161,7 @@ export const remove = (Model, supabaseTable) => async (req, res) => {
   }
 };
 
-// Buscar registros con filtros dinámicos
+// Buscar registros 
 export const search = (Model, supabaseTable) => async (req, res) => {
   try {
     const filters = {};

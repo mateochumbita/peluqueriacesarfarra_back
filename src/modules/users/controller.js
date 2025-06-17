@@ -6,12 +6,16 @@ import { sequelizeDB } from '../../database/connection.database.js';
 const models = initModels(sequelizeDB);
 const Users = models.Users;
 
-// Nombre de la tabla en Supabase
+
 const supabaseTable = 'Users';
 
-
+//obtener todos los usuarios
 export const getAllUsers = findAll(Users, supabaseTable);
-export const getUserById = findOne(Users); // Cambiado de getuserById a getUserById
+//obtener un usuario por id
+export const getUserById = findOne(Users); 
+//actualizar usuario
 export const updateUser = update(Users, supabaseTable);
+//eliminar usuario
 export const deleteUser = remove(Users, supabaseTable);
+//buscar usuario
 export const searchUsers = search(Users, supabaseTable);
