@@ -11,7 +11,7 @@ El sistema está desarrollado con Node.js, Express y Sequelize ORM para interact
 
 
 
-```bash
+```env
 Backend: https://peluqueriacesarfarra-back.vercel.app/
 
 Frontend:https://peluqueriacesarfarra-front.vercel.app/
@@ -46,7 +46,7 @@ npm install
 
 ### 🔧 Configuración del entorno
  Crear archivo .env, coopiar y pegar las siguientes variables
-```bash
+```env
 DATABASE_URL = postgresql://postgres.jliftkhfaoymqgaiaxac:Nicolas_Mateo_Chumbita@aws-0-sa-east-1.pooler.supabase.com:6543/postgres
 DATABASE_USER = postgres.jliftkhfaoymqgaiaxacJWT_SECRET=tu_secreto_para_jwt
 SUPABASE_URL = https://jliftkhfaoymqgaiaxac.supabase.co
