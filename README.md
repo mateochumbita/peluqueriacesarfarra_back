@@ -33,7 +33,7 @@ npm install
 
 ```
 
-###🔧 Configuración del entorno
+### 🔧 Configuración del entorno
  Crear archivo .env, coopiar y pegar las siguientes variables
 ```bash
 DATABASE_URL = postgresql://postgres.jliftkhfaoymqgaiaxac:Nicolas_Mateo_Chumbita@aws-0-sa-east-1.pooler.supabase.com:6543/postgres
@@ -45,7 +45,7 @@ RESEND_API_KEY = re_Bq1me9Hu_Jfdxaj23LVqrDV3jbRSgYT9d
 
 ```
 
-###3. Ejecutar el backend
+### 3. Ejecutar el backend
 
 ```bash
 npm run dev
@@ -53,7 +53,7 @@ npm run dev
 ```
 
 
-###🧪 Ejecutar pruebas (opcional)
+### 🧪 Ejecutar pruebas (opcional)
 El proyecto incluye pruebas automatizadas, tanto unitarias como de integración.
 Para ejecutarlas todas al mismo tiempo puede utilizar el siguiente comando 
 
