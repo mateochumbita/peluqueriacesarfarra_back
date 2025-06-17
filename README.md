@@ -23,8 +23,8 @@ El sistema está desarrollado con Node.js, Express y Sequelize ORM para interact
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu_usuario/backend-cesar-farra.git
-cd backend-cesar-farra
+git clone https://github.com/mateochumbita/peluqueriacesarfarra_back.git
+cd peluqueriacesarfarra_back
 ```
 
 ###2. Instalar las dependencias
