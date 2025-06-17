@@ -36,7 +36,7 @@ router.get('/stats', getClientsStats);
  * @swagger
  * /clients:
  *   get:
- *     summary: Obtener todos los clientes
+ *     summary: Obtener todos los clientes habilitados
  *     tags: [Clientes]
  *     responses:
  *       200:
@@ -44,7 +44,16 @@ router.get('/stats', getClientsStats);
  */
 router.get('/', getAllClients);
 
-
+/**
+ * @swagger
+ * /clients/disabled:
+ *   get:
+ *     summary: Obtener todos los clientes deshabilitados
+ *     tags: [Clientes]
+ *     responses:
+ *       200:
+ *         description: Lista de clientes deshabilitados obtenida correctamente
+ */
 router.get('/disabled', getAllDisabledClients);
 
 /**

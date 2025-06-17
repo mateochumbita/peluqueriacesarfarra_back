@@ -15,22 +15,22 @@ import { authenticateToken } from '../middlewares/authenticateToken.js';
 
 const router = express.Router();
 
-// Asignar rutas de cada módulo a un endpoint general
-router.use('/clients', authenticateToken, clientRoutes); // Middleware aplicado correctamente
+// rutas con autenticación
+router.use('/clients', authenticateToken, clientRoutes); 
 router.use('/users', authenticateToken,userRoutes); // Rutas de usuarios
 router.use('/hairdressers', authenticateToken, hairdresserRoutes); // Rutas de peluqueros
-router.use('/profiles', authenticateToken, profileRoutes); // Rutas de perfil
+router.use('/profiles', authenticateToken, profileRoutes); // Rutas de perfiles
 router.use('/appointments', authenticateToken, appointmentRoutes); // Rutas de citas
-
-
-//RUTAS LIBRES DE AUTHENTICACION
-router.use('/auth', authRoutes); 
-
 router.use('/earnings', authenticateToken, earningsRoutes); // Rutas de ganancias
 router.use('/services', authenticateToken, servicesRoutes); // Rutas de servicios
 router.use('/hairdressers-services', authenticateToken, hairdresserServicesRoutes); // Rutas de hairdressers_services
 
-// router.use('/auth/logout', userRoutes.logout); // Rutas de cierre de sesión de usuarios
+
+//rutas libres de autenticación
+router.use('/auth', authRoutes); 
+
+
+
 
 
 export default router;
