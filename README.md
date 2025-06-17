@@ -1,10 +1,10 @@
 # 💇‍♂️ Backend - Peluquería César Farra
 
-Este proyecto corresponde al backend del sistema de gestión para la **Peluquería César Farra**. Permite llevar el control de turnos, clientes, peluqueros, servicios, y autenticación de usuarios con distintos roles.
+Este proyecto corresponde al backend del sistema de gestión para la **Peluquería César Farra**. Permite llevar a cabo el control de turnos, clientes, peluqueros, servicios, y autenticación de usuarios con distintos roles. Por un lado el rol de administrador, llevado a cabo por el dueño y peluquero César Farra y por otro lado el rol de Clientes.
 
 ## 🧾 Descripción
 
-El sistema está desarrollado con Node.js, Express y Sequelize ORM para interactuar con una base de datos MySQL. Ofrece una API RESTful segura mediante autenticación JWT, y está preparado para integrarse con un frontend o cliente móvil.
+El sistema está desarrollado con Node.js, Express y Sequelize ORM para interactuar con una base de datos PostgreSQL a través de Supabase. Ofrece una API RESTful segura mediante autenticación JWT, y está preparado para integrarse con un frontend o cliente móvil.
 
 ---
 
