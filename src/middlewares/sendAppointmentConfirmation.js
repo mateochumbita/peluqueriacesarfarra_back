@@ -47,11 +47,11 @@ export const sendAppointmentConfirmation = async (req, res, next) => {
       }
     }
 
-    // Formatear la fecha a formato latinoamericano (DD/MM/YYYY)
+    // Formatear la fecha con formateDateLatam
     const fechaLatam = formaDateLatam(Fecha);
 
     await resend.emails.send({
-      from: "onboarding@resend.dev", // Cambia esto por tu dominio verificado si lo tienes
+      from: "onboarding@resend.dev",
       to: cliente.Email,
       subject: "Confirmación de turno",
       html: `<p>Hola ${cliente.Nombre}, tu turno ha sido registrado para el día <strong>${fechaLatam}</strong> a las <strong>${Hora}</strong>.<br>
@@ -63,6 +63,6 @@ export const sendAppointmentConfirmation = async (req, res, next) => {
     next();
   } catch (error) {
     console.error("Error enviando email de confirmación:", error);
-    next(); // No frena el flujo si falla el mail
+    next(); 
   }
 };

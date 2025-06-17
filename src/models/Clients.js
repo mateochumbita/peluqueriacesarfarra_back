@@ -38,11 +38,11 @@ const Model = (sequelize) => {
       type: DataTypes.INTEGER,
       defaultValue: 0
     },
-    IdUser: { // Clave foránea para relacionar con Users
+    IdUser: { 
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'Users', // Nombre de la tabla referenciada
+        model: 'Users',
         key: 'Id'
       }
     }

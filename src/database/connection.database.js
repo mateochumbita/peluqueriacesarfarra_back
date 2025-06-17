@@ -1,11 +1,11 @@
 import { Sequelize } from 'sequelize';
 import 'dotenv/config';
-import pg from 'pg'; // Importar el módulo pg
+import pg from 'pg'; 
 
 // Configuración de la conexión a la base de datos
 export const sequelizeDB = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
-    dialectModule: pg, // Especificar el módulo pg
+    dialectModule: pg, 
     dialectOptions: {
         ssl: {
             require: true,
@@ -14,7 +14,7 @@ export const sequelizeDB = new Sequelize(process.env.DATABASE_URL, {
     },
 });
 
-// Probar la conexión
+// Probar conexión
 (async () => {
     try {
         await sequelizeDB.authenticate();

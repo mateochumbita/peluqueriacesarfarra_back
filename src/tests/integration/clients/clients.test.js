@@ -6,7 +6,7 @@ import { sequelizeDB } from "../../../database/connection.database.js";
 const models = initModels(sequelizeDB);
 const Clients = models.Clients;
 const Users = models.Users;
-
+//eliminar el cliente de prueba si es que lo hay
 beforeAll(async () => {
   try {
     await Clients.destroy({ where: { Dni: "12345678" } });
@@ -15,14 +15,14 @@ beforeAll(async () => {
     console.error("Error eliminando usuarios/clients:", error);
   }
 });
-
+//prueba crear un cliente
 describe("POST /api/v1/auth/register", () => {
   it("debería crear un nuevo cliente", async () => {
     const nuevoCliente = {
       username: "usertetest",
       password: "123456",
       habilitado: false,
-      IdProfile: 2, // Asegurate que este sea el perfil de 'cliente'
+      IdProfile: 2, 
       dni: "12345678",
       nombre: "prueba",
       telefono: "123456789",

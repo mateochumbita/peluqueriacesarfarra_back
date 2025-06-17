@@ -37,7 +37,7 @@ const Model = (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: "Users", // Nombre de la tabla referenciada
+          model: "Users", 
           key: "Id",
         },
       },
@@ -54,7 +54,7 @@ const Model = (sequelize) => {
           fields: [{ name: "Id" }],
         },
         {
-          name: "Hairdressers_IdUser_idx", // Cambiado para evitar conflictos
+          name: "Hairdressers_IdUser_idx", 
           fields: [{ name: "IdUser" }],
         },
       ],

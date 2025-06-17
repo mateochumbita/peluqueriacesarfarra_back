@@ -5,18 +5,18 @@ import { sequelizeDB } from "../../../database/connection.database.js"; // ejemp
 
 const models = initModels(sequelizeDB);
 const Appointments = models.Appointments;
-
+//prueba crear un turno 
 describe("POST /api/v1/appointments", () => {
   let token;
 
   beforeAll(async () => {
-    // Suponiendo que tenés un login con email y contraseña
+
     const loginRes = await request(app).post("/api/v1/auth/login").send({
       username: "administrador",
       password: "Admin2025*",
     });
 
-    token = loginRes.body.token; // o como devuelvas el JWT
+    token = loginRes.body.token; 
   });
 
   beforeAll(async () => {
@@ -36,13 +36,13 @@ describe("POST /api/v1/appointments", () => {
       .post("/api/v1/appointments")
       .set("Authorization", `Bearer ${token}`)
       .send(nuevoTurno);
-    expect(res.statusCode).toBe(201); // o el status que uses realmente
+    expect(res.statusCode).toBe(201); 
     expect(res.body).toHaveProperty("Id");
     expect(res.body.Id).toBeDefined();
   });
 });
 
-
+//prueba de cancelar un turno
 describe("PUT /api/v1/appointments/:id", () => {
   let token;
 
@@ -55,8 +55,14 @@ describe("PUT /api/v1/appointments/:id", () => {
     token = loginRes.body.token;
   });
 
+   beforeAll(async () => {
+    await Appointments.destroy({ where: { Fecha: "2023-05-16" } });
+  });
+
+
+  //se crea un turno de prueba 
   it("debería cancelar el turno", async () => {
-    // Primero creamos el turno
+   
     const turnoNuevo = {
       Fecha: "2023-05-16",
       Hora: "11:00:00",
@@ -73,7 +79,7 @@ describe("PUT /api/v1/appointments/:id", () => {
     expect(crearRes.statusCode).toBe(201);
     const turnoId = crearRes.body.Id;
 
-    // Luego actualizamos el estado a "Cancelado"
+    //se cancela el turno
     const actualizarRes = await request(app)
       .put(`/api/v1/appointments/${turnoId}`)
       .set("Authorization", `Bearer ${token}`)

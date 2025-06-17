@@ -2,11 +2,13 @@ import jwt from "jsonwebtoken";
 import initModels from "../models/init-models.js";
 import { sequelizeDB } from "../database/connection.database.js";
 
-// Inicializar modelos igual que en tus controllers
+//inicializar modelos
 const models = initModels(sequelizeDB);
 const Users = models.Users;
 const Profiles = models.Profiles;
 
+
+//autheticate token
 export const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
   if (!authHeader) {

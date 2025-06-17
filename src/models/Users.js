@@ -5,7 +5,7 @@ const Users = (sequelize) => {
     Id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      autoIncrement: true, // Agregado para que sea auto incremental
+      autoIncrement: true, 
       primaryKey: true,
       autoIncrement: true
     },

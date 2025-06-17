@@ -6,17 +6,18 @@ import { sequelizeDB } from "../../../database/connection.database.js";
 const models = initModels(sequelizeDB);
 
 const Services = models.Services;
+
+//prueba crear un servicio
 describe("POST /api/v1/services", () => {
   let token;
 
   beforeAll(async () => {
-    // Suponiendo que tenés un login con email y contraseña
     const loginRes = await request(app).post("/api/v1/auth/login").send({
       username: "administrador",
       password: "Admin2025*",
     });
 
-    token = loginRes.body.token; // o como devuelvas el JWT
+    token = loginRes.body.token;
   });
 
   beforeAll(async () => {

@@ -42,7 +42,7 @@ export const sendAppointmentPaymentConfirmation = async (req, res, next) => {
       }
     }
 
-    // Formatear la fecha a formato latinoamericano (DD/MM/YYYY)
+    // Formatear la fecha con formatDateLatam
     let fechaLatam = Fecha;
     if (Fecha) {
       const [year, month, day] = Fecha.split('-');
@@ -50,7 +50,7 @@ export const sendAppointmentPaymentConfirmation = async (req, res, next) => {
     }
 
     await resend.emails.send({
-      from: 'onboarding@resend.dev', // Cambia esto por tu dominio verificado si lo tienes
+      from: 'onboarding@resend.dev', 
       to: cliente.Email,
       subject: 'Confirmación de pago de turno',
       html: `<p>Hola ${cliente.Nombre}, tu pago para el turno del día <strong>${fechaLatam}</strong> a las <strong>${Hora}</strong> ha sido confirmado.<br>
@@ -62,6 +62,6 @@ export const sendAppointmentPaymentConfirmation = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Error enviando email de confirmación de pago:', error);
-    next(); // No frena el flujo si falla el mail
+    next(); 
   }
 };

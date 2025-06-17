@@ -75,24 +75,24 @@ export const createAppointment = async (req, res) => {
       // Enviar email de confirmación de pago
       try {
         await sendAppointmentPaymentConfirmation(
-          { body: { ...req.body, IdAppointment: nuevoTurno.Id } }, // <-- Se agrega el IdAppointment
+          { body: { ...req.body, IdAppointment: nuevoTurno.Id } }, // 
           res,
           () => {}
         );
       } catch (e) {
-        // El error ya se loguea en el middleware, no hace falta más manejo aquí
+        console.error("Error al enviar el email de confirmación de pago:", e);
       }
     }
 
     // Enviar email de confirmación de turno (no frena el flujo si falla)
     try {
       await sendAppointmentConfirmation(
-        { body: { ...req.body, IdAppointment: nuevoTurno.Id } }, // <-- Se agrega el IdAppointment
+        { body: { ...req.body, IdAppointment: nuevoTurno.Id } }, 
         res,
         () => {}
       );
     } catch (e) {
-      // El error ya se loguea en el middleware, no hace falta más manejo aquí
+      console.error("Error al enviar el email de confirmación de pago:", e);
     }
 
     res.status(201).json(nuevoTurno);
@@ -102,6 +102,8 @@ export const createAppointment = async (req, res) => {
   }
 };
 
+
+//obtener todos los appointments cuyo estado sea reservado
 export const getAllAppointments = async (req, res) => {
   try {
     const appointments = await models.Appointments.findAll({
@@ -155,13 +157,14 @@ export const getAllAppointments = async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
 
-    // Ordenamos los resultados de Supabase en el mismo orden (más reciente a más antiguo)
+    // se ordena del más reciente al más antiguo
     const sortedSupabase = supabaseResultsRaw.sort((a, b) => {
       const dateA = new Date(`${a.Fecha}T${a.Hora}`);
       const dateB = new Date(`${b.Fecha}T${b.Hora}`);
       return dateB - dateA; // descendente
     });
 
+    //se replica el orden en supabaseResults
     const enrichedSupabaseResults = await Promise.all(
       sortedSupabase.map(async (appt) => {
         const hairdresserService = await Hairdressers_Services.findOne({
@@ -227,7 +230,10 @@ export const getAllAppointments = async (req, res) => {
   }
 };
 
+//obtener appointment por id
 export const getAppointmentById = findOne(Appointments);
+
+//actualizar appointment
 export const updateAppointment = async (req, res) => {
   try {
     const { id } = req.params;
@@ -287,8 +293,13 @@ export const updateAppointment = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+//eliminar appointment
 export const deleteAppointment = remove(Appointments, supabaseTable);
+// buscar appointment
 export const searchAppointments = search(Appointments, supabaseTable);
+
+//obtener estadisticas de los appointments
 export const getAppointmentsStats = async (req, res) => {
   try {
     const capacidadMaximaDia = 30;
