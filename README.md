@@ -62,6 +62,11 @@ npm run dev
 1. Ingresar a su navegador de confianza Chrome, Firefox, Edge, etc.
 2. ingresar en la barra de búsqueda: <localhost:3001/api-docs>
 
+## Link del despliegue de Swagger
+Otra opción es accediendo al link del despliegue del Swagger en Netlify:
+<https://glittering-cucurucho-f990e1.netlify.app/>
+
+
 ### 🧪 Ejecutar pruebas 
 El proyecto incluye pruebas automatizadas, tanto unitarias como de integración.
 Para ejecutarlas todas al mismo tiempo puede utilizar el siguiente comando 
