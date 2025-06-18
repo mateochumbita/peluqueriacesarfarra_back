@@ -7,8 +7,9 @@ Este proyecto corresponde al backend del sistema de gestión para la **Peluquer�
 El sistema está desarrollado con Node.js, Express y Sequelize ORM para interactuar con una base de datos PostgreSQL a través de Supabase. Ofrece una API RESTful segura mediante autenticación JWT, y está preparado para integrarse con un frontend o cliente móvil.
 
 
-### Link del Deploy 
+### Link de los despliegues del proyecto
 
+Se recuerda que tanto el Frontend como el backend que lo complementa están desplegados en vercel, aquí los links de los mismos
 
 
 ```env
@@ -16,9 +17,7 @@ Backend: https://peluqueriacesarfarra-back.vercel.app/
 
 Frontend:https://peluqueriacesarfarra-front.vercel.app/
 
-
 ```
-
 
 ## 🚀 Funcionalidades principales
 
