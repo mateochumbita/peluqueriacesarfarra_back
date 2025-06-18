@@ -13,6 +13,9 @@ const app = express();
 
 const models = initModels(sequelizeDB);
 
+// script que sincroniza los modelos con la base de datos
+//está comentado ya que no se necesita sincronizar las tablas constantemente
+
 // async function syncModels() {
 //   try {
 // // // //     // Orden recomendado según dependencias
@@ -32,7 +35,7 @@ const models = initModels(sequelizeDB);
 
 // syncModels();
 
-
+//configuración de swagger
 const swaggerOptions = {
   definition: {
     openapi: "3.0.0",
