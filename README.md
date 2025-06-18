@@ -61,9 +61,11 @@ RESEND_API_KEY = re_Bq1me9Hu_Jfdxaj23LVqrDV3jbRSgYT9d
 npm run dev
 
 ```
+### 📘 Swagger: Documentación de las rutas de la aplicación
+1. Ingresar a su navegador de confianza Chrome, Firefox, Edge, etc.
+2. ingresar en la barra de búsqueda: <localhost:3001/api-docs>
 
-
-### 🧪 Ejecutar pruebas (opcional)
+### 🧪 Ejecutar pruebas 
 El proyecto incluye pruebas automatizadas, tanto unitarias como de integración.
 Para ejecutarlas todas al mismo tiempo puede utilizar el siguiente comando 
 
@@ -83,6 +85,8 @@ Para ejecutar las pruebas de integración
 npm run test:integration
 
 ```
+
+
 
 
 
