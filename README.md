@@ -38,7 +38,7 @@ git clone https://github.com/mateochumbita/peluqueriacesarfarra_back.git
 cd peluqueriacesarfarra_back
 ```
 
-###2. Instalar las dependencias
+### 2. Instalar las dependencias
 ```bash
 npm install
 
