@@ -18,10 +18,10 @@ El sistema está desarrollado con Node.js, Express y Sequelize ORM para interact
 
 ---
 
-### Link del repositorio Frontend del proyecto
+### ✨Link del repositorio Frontend del proyecto
 
 Si usted está por iniciar la instalación y ejecución del proyecto pero desea tener una experciencia completa, es altamente recomendable primero realizar la instalación del Backend y luego dirigirse al repositorio del Frontend para realizar el mismo proceso
-### ✨Link del repositorio Frontend
+### Link del repositorio Frontend
 <https://github.com/mateochumbita/peluqueriacesarfarra_front>
 
 
