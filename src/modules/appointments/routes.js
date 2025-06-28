@@ -7,7 +7,8 @@ import {
     updateAppointment, 
     deleteAppointment, 
     searchAppointments,
-    getAppointmentsStats
+    getAppointmentsStats,
+    getAppointmentsByClientId
 } from './controller.js';
 
 const router = express.Router();
@@ -91,6 +92,44 @@ router.get('/', getAllAppointments);
  */
 router.get('/day', getAllAppointmentsDay);
 
+
+
+/**
+ * @swagger
+ * /appointments/client/{clientId}:
+ *   get:
+ *     summary: Obtener historial de citas por ID de cliente
+ *     tags: [Citas]
+ *     parameters:
+ *       - in: path
+ *         name: clientId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del cliente para filtrar las citas
+ *     responses:
+ *       200:
+ *         description: Lista de citas del cliente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 localResults:
+ *                   type: array
+ *                   description: Resultados obtenidos de la base de datos local
+ *                   items:
+ *                     type: object
+ *                 supabaseResults:
+ *                   type: array
+ *                   description: Resultados obtenidos de Supabase
+ *                   items:
+ *                     type: object
+ *       404:
+ *         description: No se encontraron citas para el cliente especificado
+ */
+
+router.get("/client/:clientId", getAppointmentsByClientId);
 /**
  * @swagger
  * /appointments/search:

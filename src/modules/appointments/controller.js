@@ -233,6 +233,140 @@ export const getAllAppointments = async (req, res) => {
 //obtener appointment por id
 export const getAppointmentById = findOne(Appointments);
 
+//obtener appointments por clientId
+export const getAppointmentsByClientId = async (req, res) => {
+  const { clientId } = req.params;
+
+  try {
+    // === BASE LOCAL ===
+    const appointments = await Appointments.findAll({
+      where: {
+        IdCliente: clientId,
+      },
+      include: [
+        {
+          model: Hairdressers_Services,
+          as: "HairdresserService",
+          include: [
+            {
+              model: Hairdressers,
+              as: "Hairdresser",
+              attributes: ["Nombre"],
+            },
+            {
+              model: Services,
+              as: "Service",
+              attributes: ["Nombre", "Descripcion"],
+            },
+          ],
+        },
+        {
+          model: Clients,
+          as: "Cliente",
+          attributes: ["Nombre"],
+        },
+      ],
+      order: [
+        ["Fecha", "DESC"],
+        ["Hora", "DESC"],
+      ],
+    });
+
+    const localResults = appointments.map((appt) => {
+      const originalData = appt.toJSON();
+      return {
+        ...originalData,
+        desc: {
+          Peluquero: appt.HairdresserService?.Hairdresser?.Nombre || null,
+          Servicio: appt.HairdresserService?.Service?.Nombre || null,
+          DescripcionServicio:
+            appt.HairdresserService?.Service?.Descripcion || null,
+        },
+      };
+    });
+
+    // === SUPABASE ===
+    const { data: supabaseRaw, error } = await supabase
+      .from("Appointments")
+      .select("*")
+      .eq("IdCliente", clientId);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    const sortedSupabase = supabaseRaw.sort((a, b) => {
+      const dateA = new Date(`${a.Fecha}T${a.Hora}`);
+      const dateB = new Date(`${b.Fecha}T${b.Hora}`);
+      return dateB - dateA; // descendente
+    });
+
+    const enrichedSupabaseResults = await Promise.all(
+      sortedSupabase.map(async (appt) => {
+        const hairdresserService = await Hairdressers_Services.findOne({
+          where: { Id: appt.IdHairdresser_Service },
+          include: [
+            {
+              model: Hairdressers,
+              as: "Hairdresser",
+              attributes: ["Nombre"],
+            },
+            {
+              model: Services,
+              as: "Service",
+              attributes: ["Nombre", "Descripcion"],
+            },
+          ],
+        });
+
+        const client = await Clients.findOne({
+          where: { Id: appt.IdCliente },
+          attributes: ["Nombre"],
+        });
+
+        return {
+          ...appt,
+          HairdresserService: hairdresserService
+            ? {
+                Id: hairdresserService.Id,
+                IdHairdresser: hairdresserService.IdHairdresser,
+                IdService: hairdresserService.IdService,
+                Hairdresser: hairdresserService.Hairdresser
+                  ? { Nombre: hairdresserService.Hairdresser.Nombre }
+                  : null,
+                Service: hairdresserService.Service
+                  ? {
+                      Nombre: hairdresserService.Service.Nombre,
+                      Descripcion: hairdresserService.Service.Descripcion,
+                    }
+                  : null,
+              }
+            : null,
+          Cliente: client ? { Nombre: client.Nombre } : null,
+          desc:
+            hairdresserService || client
+              ? {
+                  Peluquero: hairdresserService?.Hairdresser?.Nombre || null,
+                  Servicio: hairdresserService?.Service?.Nombre || null,
+                  DescripcionServicio:
+                    hairdresserService?.Service?.Descripcion || null,
+                  Cliente: client?.Nombre || null,
+                }
+              : null,
+        };
+      })
+    );
+
+    return res.status(200).json({
+      localResults,
+      supabaseResults: enrichedSupabaseResults,
+    });
+  } catch (error) {
+    console.error("Error en getAppointmentsByClientId:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 //actualizar appointment
 export const updateAppointment = async (req, res) => {
   try {

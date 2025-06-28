@@ -9,6 +9,7 @@ const Profiles = models.Profiles;
 
 
 //autheticate token
+// Middleware de autenticación
 export const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
   if (!authHeader) {
@@ -37,25 +38,35 @@ export const authenticateToken = async (req, res, next) => {
     }
 
     const profileName = user.Profile?.Nombre?.toLowerCase();
-
     req.userId = user.Id;
     req.userRole = profileName;
 
     const path = req.originalUrl.toLowerCase();
+    const method = req.method.toUpperCase();
 
     if (profileName === "admin") {
       return next();
     }
 
     if (profileName === "cliente") {
+      // Permitir acceso a /api/v1/clients/*
       if (path.startsWith("/api/v1/clients")) {
         return next();
       }
 
+      // Permitir acceso a su propio perfil: /api/v1/users/:id
       const match = path.match(/\/users\/(\d+)/);
       const userIdParam = match ? parseInt(match[1]) : null;
 
       if (path.startsWith("/api/v1/users/") && userIdParam === user.Id) {
+        return next();
+      }
+
+      // Permitir GET y POST en /api/v1/appointments
+      if (
+        path.startsWith("/api/v1/appointments") &&
+        (method === "GET" || method === "POST")
+      ) {
         return next();
       }
 
