@@ -69,6 +69,13 @@ export const authenticateToken = async (req, res, next) => {
       ) {
         return next();
       }
+        // Permitir GET y POST en /api/v1/appointments
+      if (
+        path.startsWith("/api/v1/hairdressers-services") &&
+        (method === "GET" || method === "POST")
+      ) {
+        return next();
+      }
 
       return res.status(403).json({ message: "Access denied for client role" });
     }
