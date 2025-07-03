@@ -8,7 +8,8 @@ import {
   deleteClient, 
   searchClients,
   getClientsStats,
-  getClientByUserId
+  getClientByUserId,
+  reedemPoints
 } from './controller.js';
 
 const router = express.Router();
@@ -201,5 +202,10 @@ router.delete('/:id', deleteClient);
  *         description: Cliente no encontrado
  */
 router.get('/user/:idUser', getClientByUserId);
+
+
+
+
+router.post('/reedem-points', reedemPoints);
 
 export default router;

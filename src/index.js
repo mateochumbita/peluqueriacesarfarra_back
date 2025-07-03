@@ -19,15 +19,15 @@ const models = initModels(sequelizeDB);
 // async function syncModels() {
 //   try {
 // // // //     // Orden recomendado según dependencias
-// // // //     await models.Profiles.sync({ force: true });
-// // // //     await models.Users.sync({ force: true });
-// // // //     await models.Clients.sync({ force: true });
-// // // //     await models.Services.sync({ force: true });
-//     await models.Hairdressers.sync({ alter: true });
-// // // //     await models.Hairdressers_Services.sync({ force: true });
-// //  await models.Appointments.sync({ alter: true });
-// // // //     await models.Earnings.sync({ force: true });
-// // //     console.log('Todas las tablas fueron eliminadas y recreadas en orden.');
+// // // // //     await models.Profiles.sync({ force: true });
+// // // // //     await models.Users.sync({ force: true });
+// // // // //     await models.Clients.sync({ force: true });
+// // // // //     await models.Services.sync({ force: true });
+// //     await models.Hairdressers.sync({ alter: true });
+// // // // //     await models.Hairdressers_Services.sync({ force: true });
+//  await models.Appointments.sync({ alter: true });
+// // // // //     await models.Earnings.sync({ force: true });
+// // // //     console.log('Todas las tablas fueron eliminadas y recreadas en orden.');
 //   } catch (error) {
 //     console.error('Error al sincronizar los modelos:', error);
 //   }

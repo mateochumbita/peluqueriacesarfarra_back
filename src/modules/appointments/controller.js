@@ -120,7 +120,7 @@ export const getAllAppointments = async (req, res) => {
             {
               model: models.Services,
               as: "Service",
-              attributes: ["Nombre", "Descripcion"],
+              attributes: ["Nombre", "Descripcion", "Precio"],
             },
           ],
         },
@@ -143,8 +143,10 @@ export const getAllAppointments = async (req, res) => {
         desc: {
           Peluquero: appt.HairdresserService?.Hairdresser?.Nombre || null,
           Servicio: appt.HairdresserService?.Service?.Nombre || null,
+          Precio: appt.HairdresserService?.Service?.Precio || null,
           DescripcionServicio:
             appt.HairdresserService?.Service?.Descripcion || null,
+
         },
       };
     });
@@ -178,7 +180,7 @@ export const getAllAppointments = async (req, res) => {
             {
               model: Services,
               as: "Service",
-              attributes: ["Nombre", "Descripcion"],
+              attributes: ["Nombre", "Descripcion", "Precio"],
             },
           ],
         });
@@ -202,6 +204,7 @@ export const getAllAppointments = async (req, res) => {
                   ? {
                       Nombre: hairdresserService.Service.Nombre,
                       Descripcion: hairdresserService.Service.Descripcion,
+                      Precio: hairdresserService.Service.Precio,
                     }
                   : null,
               }
@@ -256,7 +259,7 @@ export const getAppointmentsByClientId = async (req, res) => {
             {
               model: Services,
               as: "Service",
-              attributes: ["Nombre", "Descripcion"],
+              attributes: ["Nombre", "Descripcion", "Precio"],
             },
           ],
         },
@@ -279,6 +282,7 @@ export const getAppointmentsByClientId = async (req, res) => {
         desc: {
           Peluquero: appt.HairdresserService?.Hairdresser?.Nombre || null,
           Servicio: appt.HairdresserService?.Service?.Nombre || null,
+          Precio: appt.HairdresserService?.Service?.Precio || null,
           DescripcionServicio:
             appt.HairdresserService?.Service?.Descripcion || null,
         },
@@ -314,7 +318,7 @@ export const getAppointmentsByClientId = async (req, res) => {
             {
               model: Services,
               as: "Service",
-              attributes: ["Nombre", "Descripcion"],
+              attributes: ["Nombre", "Descripcion", "Precio"],
             },
           ],
         });
@@ -338,6 +342,7 @@ export const getAppointmentsByClientId = async (req, res) => {
                   ? {
                       Nombre: hairdresserService.Service.Nombre,
                       Descripcion: hairdresserService.Service.Descripcion,
+                      Precio: hairdresserService.Service.Precio,
                     }
                   : null,
               }

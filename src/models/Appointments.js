@@ -30,6 +30,12 @@ const Model = (sequelize) => {
       type: DataTypes.ENUM('Reservado', 'Pagado', 'Cancelado'),
       allowNull: false
     },
+
+    PuntosFidelidad:{
+      type:DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
   
    IdHairdresser_Service: {
       type: DataTypes.INTEGER,

@@ -280,3 +280,36 @@ export const getClientByUserId = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+
+export const reedemPoints = async (req, res) => {
+  const { idClient, points } = req.body;
+
+  try {
+    // Buscar el cliente
+    const client = await Clients.findOne({
+      where: { Id: idClient },
+    });
+
+    if (!client) {
+      return res.status(404).json({ message: "Cliente no encontrado" });
+    }
+
+    // Verificar si tiene suficientes puntos
+    if (client.PuntosFidelidad < points) {
+      return res.status(400).json({
+        message: "El cliente no tiene suficientes puntos de fidelidad",
+      });
+    }
+
+    // Restar los puntos
+    client.PuntosFidelidad -= points;
+    await client.save();
+
+    res.json({ message: "Puntos canjeados exitosamente", client });
+  } catch (error) {
+    console.error("Error en reedemPoints:", error);
+    res.status(500).json({ error: error.message });
+  }
+}
