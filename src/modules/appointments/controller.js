@@ -25,7 +25,14 @@ const supabaseTable = "Appointments";
 // Crear Appointment y replicar en Earnings
 export const createAppointment = async (req, res) => {
   try {
-    const { IdCliente, Fecha, Hora, IdHairdresser_Service, Estado } = req.body;
+    const {
+      IdCliente,
+      Fecha,
+      Hora,
+      IdHairdresser_Service,
+      Estado,
+      PuntosFidelidad,
+    } = req.body;
 
     // 1. Validar que no haya otro turno igual (misma fecha, hora y servicio)
     const turnoExistente = await Appointments.findOne({
@@ -57,25 +64,34 @@ export const createAppointment = async (req, res) => {
       return res.status(400).json({ error: "No se encontró el servicio." });
     }
 
-    // 3. Crear el turno (EstadoPago es obligatorio según tu modelo)
+    // 3. Crear el turno
     const nuevoTurno = await Appointments.create({
       IdCliente,
       Fecha,
       Hora,
       IdHairdresser_Service,
       Estado,
+      PuntosFidelidad,
     });
 
     // 4. Solo si EstadoPago es true, crear el registro en Earnings
     if (Estado === "Pagado") {
-      await Earnings.create({
-        Importe: service.Precio,
-        IdAppointment: nuevoTurno.Id,
-      });
+      if (PuntosFidelidad) {
+        await Earnings.create({
+          Importe: service.Precio * 0.8, // Aplicar descuento del 20%
+          IdAppointment: nuevoTurno.Id,
+        });
+      } else {
+        await Earnings.create({
+          Importe: service.Precio,
+          IdAppointment: nuevoTurno.Id,
+        });
+      }
+
       // Enviar email de confirmación de pago
       try {
         await sendAppointmentPaymentConfirmation(
-          { body: { ...req.body, IdAppointment: nuevoTurno.Id } }, // 
+          { body: { ...req.body, IdAppointment: nuevoTurno.Id } }, //
           res,
           () => {}
         );
@@ -87,7 +103,7 @@ export const createAppointment = async (req, res) => {
     // Enviar email de confirmación de turno (no frena el flujo si falla)
     try {
       await sendAppointmentConfirmation(
-        { body: { ...req.body, IdAppointment: nuevoTurno.Id } }, 
+        { body: { ...req.body, IdAppointment: nuevoTurno.Id } },
         res,
         () => {}
       );
@@ -101,7 +117,6 @@ export const createAppointment = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 //obtener todos los appointments cuyo estado sea reservado
 export const getAllAppointments = async (req, res) => {
@@ -146,7 +161,6 @@ export const getAllAppointments = async (req, res) => {
           Precio: appt.HairdresserService?.Service?.Precio || null,
           DescripcionServicio:
             appt.HairdresserService?.Service?.Descripcion || null,
-
         },
       };
     });
@@ -376,7 +390,7 @@ export const getAppointmentsByClientId = async (req, res) => {
 export const updateAppointment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { Estado, ...rest } = req.body;
+    const { Estado, PuntosFidelidad, ...rest } = req.body;
 
     // Buscar el turno existente
     const turno = await Appointments.findByPk(id);
@@ -400,10 +414,17 @@ export const updateAppointment = async (req, res) => {
         if (hairdresserService) {
           const service = await Services.findByPk(hairdresserService.IdService);
           if (service) {
-            await Earnings.create({
-              Importe: service.Precio,
-              IdAppointment: turno.Id,
-            });
+            if (turno.PuntosFidelidad) {
+              await Earnings.create({
+                Importe: service.Precio * 0.8, // Aplicar descuento del 20%
+                IdAppointment: turno.Id,
+              });
+            } else {
+              await Earnings.create({
+                Importe: service.Precio,
+                IdAppointment: turno.Id,
+              });
+            }
           }
         }
       }
@@ -588,11 +609,10 @@ export const getAppointmentsStats = async (req, res) => {
   }
 };
 
-
 //obtener los turnos del dia de la fecha
 export const getAllAppointmentsDay = async (req, res) => {
   try {
-    const hoy = new Date().toISOString().slice(0, 10); 
+    const hoy = new Date().toISOString().slice(0, 10);
 
     // === BASE LOCAL ===
     const appointments = await models.Appointments.findAll({
@@ -642,12 +662,11 @@ export const getAllAppointmentsDay = async (req, res) => {
       };
     });
 
-    
     const { data: supabaseResultsRaw, error } = await supabase
       .from("Appointments")
       .select("*")
       .eq("Fecha", hoy)
-      .eq("Estado", "Reservado"); 
+      .eq("Estado", "Reservado");
     if (error) {
       return res.status(500).json({ error: error.message });
     }
