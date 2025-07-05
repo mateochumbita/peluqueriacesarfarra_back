@@ -15,7 +15,6 @@ const Hairdressers_Services = models.Hairdressers_Services;
 const Hairdressers = models.Hairdressers;
 const Services = models.Services;
 
-
 const supabaseTable = "Hairdressers_Services";
 
 // crear HairdresserService
@@ -38,7 +37,7 @@ export const getAllHairdresserServices = async (req, res) => {
         {
           model: Services,
           as: "Service",
-          attributes: ["Id", "Nombre"],
+          attributes: ["Id", "Nombre", "Precio"],
         },
       ],
     });
@@ -55,6 +54,7 @@ export const getAllHairdresserServices = async (req, res) => {
       Service: {
         Id: item.Service?.Id,
         Nombre: item.Service?.Nombre,
+        Precio: item.Service?.Precio,
       },
     }));
 
@@ -70,7 +70,7 @@ export const getAllHairdresserServices = async (req, res) => {
     // Cargar Hairdressers y Services para poder cruzar
     const [allHairdressers, allServices] = await Promise.all([
       Hairdressers.findAll({ attributes: ["Id", "Nombre"] }),
-      Services.findAll({ attributes: ["Id", "Nombre"] }),
+      Services.findAll({ attributes: ["Id", "Nombre", "Precio"] }), // <--- aquí
     ]);
 
     const hairdresserMap = new Map();
@@ -80,7 +80,7 @@ export const getAllHairdresserServices = async (req, res) => {
 
     const serviceMap = new Map();
     allServices.forEach((s) => {
-      serviceMap.set(s.Id, { Id: s.Id, Nombre: s.Nombre });
+      serviceMap.set(s.Id, { Id: s.Id, Nombre: s.Nombre, Precio: s.Precio });
     });
 
     // Formatear resultados de Supabase
@@ -95,7 +95,6 @@ export const getAllHairdresserServices = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 // obtener HairdresserService por id
 export const getHairdresserServiceById = findOne(Hairdressers_Services);
