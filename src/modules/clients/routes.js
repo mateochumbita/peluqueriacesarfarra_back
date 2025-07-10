@@ -206,6 +206,37 @@ router.get('/user/:idUser', getClientByUserId);
 
 
 
+/**
+ * @swagger
+ * /clients/reedem-points:
+ *   post:
+ *     summary: Canjear puntos de fidelidad del cliente
+ *     tags: [Clientes]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - clientId
+ *               - puntosACanjear
+ *             properties:
+ *               clientId:
+ *                 type: string
+ *                 description: ID del cliente que desea canjear puntos
+ *               puntosACanjear:
+ *                 type: integer
+ *                 description: Cantidad de puntos a canjear
+ *     responses:
+ *       200:
+ *         description: Puntos canjeados correctamente
+ *       400:
+ *         description: Datos inválidos o puntos insuficientes
+ *       404:
+ *         description: Cliente no encontrado
+ */
 router.post('/reedem-points', reedemPoints);
+
 
 export default router;
