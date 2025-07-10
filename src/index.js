@@ -69,7 +69,8 @@ app.use(
       "http://localhost:3001",
       "http://localhost:5173",
       "https://peluqueriacesarfarra-front.vercel.app",
-      "https://glittering-cucurucho-f990e1.netlify.app"
+      "https://glittering-cucurucho-f990e1.netlify.app",
+      "https://chimerical-paletas-dbb55b.netlify.app/"
     ],
     credentials: true,
   })
