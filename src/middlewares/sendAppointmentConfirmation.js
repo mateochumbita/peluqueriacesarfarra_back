@@ -1,28 +1,22 @@
-import { Resend } from "resend";
+// src/middlewares/sendAppointmentConfirmation.js
+import transporter from "../service/emailService.js";
 import initModels from "../models/init-models.js";
 import { sequelizeDB } from "../database/connection.database.js";
+import { formaDateLatam } from "../../utils/formatDateLatam.js";
 
 const models = initModels(sequelizeDB);
 const Clients = models.Clients;
 const Appointments = models.Appointments;
 const Hairdressers_Services = models.Hairdressers_Services;
 const Services = models.Services;
-import { formaDateLatam } from "../../utils/formatDateLatam.js";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendAppointmentConfirmation = async (req, res, next) => {
   try {
     const { IdCliente, Fecha, Hora, IdAppointment } = req.body;
 
-    // Buscar el cliente y su email
     const cliente = await Clients.findByPk(IdCliente);
-    if (!cliente || !cliente.Email) {
-      return next(); // Si no hay email, no se envía nada
-    }
+    if (!cliente || !cliente.Email) return next();
 
-    // Buscar el turno para obtener el servicio y precio
-    // Si IdAppointment no viene en el body, buscar el último turno del cliente en esa fecha y hora
     let appointment;
     if (IdAppointment) {
       appointment = await Appointments.findByPk(IdAppointment);
@@ -47,22 +41,27 @@ export const sendAppointmentConfirmation = async (req, res, next) => {
       }
     }
 
-    // Formatear la fecha con formateDateLatam
     const fechaLatam = formaDateLatam(Fecha);
 
-    await resend.emails.send({
-      from: "onboarding@resend.dev",
+    const mailOptions = {
+      from: `"Tu Peluquería" <${process.env.EMAIL_USER}>`,
       to: cliente.Email,
       subject: "Confirmación de turno",
-      html: `<p>Hola ${cliente.Nombre}, tu turno ha sido registrado para el día <strong>${fechaLatam}</strong> a las <strong>${Hora}</strong>.<br>
-      <strong>Servicio:</strong> ${nombreServicio} <br>
-      <strong>Precio:</strong> $${precioServicio} <br>
-      ¡Gracias por elegirnos!</p>`,
-    });
+      html: `
+        <p>Hola ${cliente.Nombre},</p>
+        <p>Tu turno ha sido registrado para el día <strong>${fechaLatam}</strong> a las <strong>${Hora}</strong>.</p>
+        <p><strong>Servicio:</strong> ${nombreServicio}</p>
+        <p><strong>Precio:</strong> $${precioServicio}</p>
+        <p>¡Gracias por elegirnos!</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("📩 Correo de confirmación enviado a", cliente.Email);
 
     next();
   } catch (error) {
-    console.error("Error enviando email de confirmación:", error);
-    next(); 
+    console.error("❌ Error al enviar email de confirmación:", error);
+    next(); // No cortar flujo aunque falle
   }
 };

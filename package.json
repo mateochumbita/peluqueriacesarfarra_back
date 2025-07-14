@@ -24,6 +24,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "luxon": "^3.6.1",
+    "nodemailer": "^7.0.5",
     "pg": "^8.14.1",
     "resend": "^4.5.1",
     "sequelize": "^6.37.7",
