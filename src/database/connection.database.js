@@ -14,7 +14,7 @@ export const sequelizeDB = new Sequelize(process.env.DATABASE_URL, {
     },
 });
 
-// Probar conexión
+// prueba de conexión a la base de datos
 (async () => {
     try {
         await sequelizeDB.authenticate();
