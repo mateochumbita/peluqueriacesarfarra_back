@@ -49,7 +49,7 @@ export const sendAppointmentPaymentConfirmation = async (req, res, next) => {
 
     // Enviar correo
     const mailOptions = {
-      from: `"Tu Peluquería" <${process.env.EMAIL_USER}>`,
+      from: `"Peluquería César Farra" <${process.env.EMAIL_USER}>`,
       to: cliente.Email,
       subject: "Confirmación de pago de turno",
       html: `
