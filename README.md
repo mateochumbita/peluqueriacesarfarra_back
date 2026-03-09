@@ -44,11 +44,14 @@ npm install
  Crear archivo .env, coopiar y pegar las siguientes variables
 ```env
 DATABASE_URL = postgresql://postgres.jliftkhfaoymqgaiaxac:Nicolas_Mateo_Chumbita@aws-0-sa-east-1.pooler.supabase.com:6543/postgres
-DATABASE_USER = postgres.jliftkhfaoymqgaiaxacJWT_SECRET=tu_secreto_para_jwt
+DATABASE_USER = postgres.jliftkhfaoymqgaiaxac
+JWT_SECRET=tu_secreto_para_jwt
 SUPABASE_URL = https://jliftkhfaoymqgaiaxac.supabase.co
 JWT_SECRET=tu_clave_secreta
 SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsaWZ0a2hmYW95bXFnYWlheGFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyNzU5MjgsImV4cCI6MjA2MDg1MTkyOH0.qtAa5OWn8X4vX1hv8a_WPOCXIRLHMdBglBzZTIpudbc
 RESEND_API_KEY = re_Bq1me9Hu_Jfdxaj23LVqrDV3jbRSgYT9d
+EMAIL_USER=mchumbita782@alumnos.iua.edu.ar
+EMAIL_PASS=dtlj eirw hakz fpyk
 
 ```
 
