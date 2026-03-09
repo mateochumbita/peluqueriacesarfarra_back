@@ -132,41 +132,59 @@ export const register = async (req, res) => {
 // Login de usuarios
 export const login = async (req, res) => {
   try {
+    console.log("📥 LOGIN REQUEST BODY:", req.body);
+
     const { username, password } = req.body;
 
     if (!username || !password) {
+      console.log("❌ Datos faltantes en login");
       return res.status(400).json({ ok: false, msg: "Faltan datos" });
     }
+
+    console.log("🔍 Buscando usuario en la BD:", username);
 
     const user = await Users.findOne({
       where: { Username: username },
       include: {
         model: Profiles,
-        as: 'Profile',
-        attributes: ['Nombre']
-      }
+        as: "Profile",
+        attributes: ["Nombre"],
+      },
     });
 
+    console.log("🔎 Resultado de Users.findOne:", user);
+
     if (!user) {
+      console.log("❌ Usuario no encontrado en la base");
       return res.status(400).json({ ok: false, msg: "Usuario no encontrado" });
     }
 
     if (!user.Habilitado) {
-      return res
-        .status(403)
-        .json({ ok: false, msg: "Usuario no habilitado para iniciar sesión" });
+      console.log("⛔ Usuario encontrado, pero no habilitado");
+      return res.status(403).json({
+        ok: false,
+        msg: "Usuario no habilitado para iniciar sesión",
+      });
     }
 
+    console.log("🔐 Validando contraseña...");
+
     const isPasswordValid = await bcrypt.compare(password, user.Password);
+
     if (!isPasswordValid) {
+      console.log("❌ Contraseña incorrecta");
       return res.status(400).json({ ok: false, msg: "Contraseña incorrecta" });
     }
+
+    console.log("🔑 Generando token...");
 
     const token = jwt.sign(
       { id: user.Id, username: user.Username },
       SECRET_KEY,
       { expiresIn: "24h" }
     );
+
+    console.log("✅ Login exitoso:", user.Id);
 
     return res.status(200).json({
       ok: true,
@@ -175,11 +193,20 @@ export const login = async (req, res) => {
         Id: user.Id,
         Username: user.Username,
         IdProfile: user.IdProfile,
-        Profile: user.Profile 
-      }
+        Profile: user.Profile,
+      },
     });
+
   } catch (error) {
-    console.error("Error en el inicio de sesión:", error);
-    return res.status(500).json({ ok: false, msg: "Error en el servidor" });
+    console.error("💥 ERROR en login:", error);
+    console.error("📌 Mensaje:", error.message);
+    console.error("📌 Stack:", error.stack);
+
+    return res.status(500).json({
+      ok: false,
+      msg: "Error en el servidor",
+      error: error.message,  // 🔥 OPCIONAL: ver causa real
+      stack: error.stack,    // 🔥 SOLO PARA DEBUG
+    });
   }
 };
