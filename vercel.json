@@ -7,25 +7,10 @@
       "maxDuration": 30
     }
   },
-  "builds": [
-    {
-      "src": "src/index.js",
-      "use": "@vercel/node"
-    }
-  ],
   "routes": [
     {
       "src": "/(.*)",
       "dest": "src/index.js"
     }
-  ],
-  "build": {
-    "env": {
-      "NODE_ENV": "production",
-      "DATABASE_URL": "@database_url",
-      "JWT_SECRET": "@jwt_secret",
-      "SUPABASE_URL": "@supabase_url",
-      "SUPABASE_KEY": "@supabase_key"
-    }
-  }
+  ]
 }
