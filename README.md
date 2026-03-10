@@ -1,4 +1,4 @@
-# 💇‍♂️ Backend - Peluquería César Farra
+ # 💇‍♂️ Backend - Peluquería César Farra
 
 Este proyecto corresponde al backend del sistema de gestión para la **Peluquería César Farra**. Permite llevar a cabo el control de turnos, clientes, peluqueros, servicios, y autenticación de usuarios con distintos roles. Por un lado el rol de administrador, llevado a cabo por el dueño y peluquero César Farra y por otro lado el rol de Clientes.
 
