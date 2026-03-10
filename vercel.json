@@ -1,5 +1,12 @@
 {
   "version": 2,
+  "functions": {
+    "src/index.js": {
+      "runtime": "nodejs18.x",
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
   "builds": [
     {
       "src": "src/index.js",
@@ -14,7 +21,11 @@
   ],
   "build": {
     "env": {
-      "NODE_ENV": "production"
+      "NODE_ENV": "production",
+      "DATABASE_URL": "@database_url",
+      "JWT_SECRET": "@jwt_secret",
+      "SUPABASE_URL": "@supabase_url",
+      "SUPABASE_KEY": "@supabase_key"
     }
   }
 }
